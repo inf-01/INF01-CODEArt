@@ -1,0 +1,187 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+    overflow: hidden;
+    perspective: 1000px;
+}
+
+.login-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    z-index: 1;
+}
+
+/* Efecto original caja blanca (Neumorfismo Claro) */
+.login-card {
+    background: #1a1a1a;
+    border-radius: 22px;
+    padding: 3.5rem 2.5rem;
+    text-align: center;
+    box-shadow: 12px 12px 24px #0b0b0b, -12px -12px 24px #292929;
+    /* Animación divertida de entrada: caída con rebote gelatinoso (jelly effect) */
+    animation: jellyEntrance 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes jellyEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9) rotate(-3deg);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateY(10px) scale(1.05) rotate(2deg);
+    }
+
+    75% {
+        transform: translateY(-5px) scale(0.98) rotate(-1deg);
+    }
+
+    100% {
+        transform: translateY(0) scale(1) rotate(0);
+    }
+}
+
+.login-header {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    letter-spacing: 0.05em;
+    color: #e0e0e0;
+    text-transform: uppercase;
+}
+
+/* Animación divertida en el corazón (latido) */
+.heart-icon {
+    color: #ff4757;
+    display: inline-block;
+    animation: heartbeat 1.5s infinite;
+}
+
+@keyframes heartbeat {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    15% {
+        transform: scale(1.3);
+    }
+
+    30% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(1.3);
+    }
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+/* Inputs Neumórficos */
+.form-control {
+    width: 100%;
+    padding: 1.2rem;
+    background: #1a1a1a;
+    border: none;
+    color: #e0e0e0;
+    border-radius: 22px;
+    font-size: 1rem;
+    box-shadow: inset 9px 9px 18px #0b0b0b, inset -9px -9px 18px #292929;
+    transition: all 0.3s ease;
+    outline: none;
+    padding-right: 3rem;
+    /* Espacio para el ícono */
+}
+
+.form-control::placeholder {
+    color: #0b0b0b;
+    transition: all 0.3s ease;
+}
+
+/* Interacción divertida en los inputs */
+.form-control:focus {
+    transform: scale(1.02);
+    box-shadow: inset 12px 12px 24px #0b0b0b, inset -12px -12px 24px #292929;
+}
+
+.form-control:focus::placeholder {
+    opacity: 0;
+    transform: translateX(10px);
+}
+
+/* Ícono interactivo dentro del input */
+.icon-input {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #0b0b0b;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: none;
+}
+
+/* Cuando el usuario hace click/focus en el input, el ícono salta y reacciona */
+.form-control:focus+.icon-input {
+    color: #00e5ff;
+    /* Tinte del color de acento */
+    transform: translateY(-50%) scale(1.3) rotate(15deg);
+}
+
+.form-control[type="password"]:focus+.icon-input {
+    color: #ff005c;
+    transform: translateY(-50%) scale(1.3) rotate(-15deg);
+}
+
+/* Botón Neumórfico Integrado */
+.submit-btn {
+    width: 100%;
+    padding: 1.2rem;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    border: none;
+    font-weight: 800;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 22px;
+    cursor: pointer;
+    box-shadow: 9px 9px 18px #0b0b0b, -9px -9px 18px #292929;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+}
+
+.submit-btn:hover {
+    color: #00e5ff;
+    transform: translateY(-2px);
+    box-shadow: 12px 12px 20px #0b0b0b, -12px -12px 20px #292929;
+}
+
+.submit-btn:active {
+    box-shadow: inset 7px 7px 14px #0b0b0b, inset -7px -7px 14px #292929;
+    transform: translateY(2px);
+}

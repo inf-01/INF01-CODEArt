@@ -1,0 +1,118 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding: 1rem;
+}
+
+/* 3D Neumorphic Card */
+.capture-card {
+    background: #1a1a1a;
+    width: 100%;
+    max-width: 420px;
+    padding: 3.5rem 2.5rem;
+    border-radius: 22px;
+    text-align: center;
+    box-shadow: 12px 12px 24px #0b0b0b, -12px -12px 24px #292929;
+    animation: fadeInDown 0.6s ease-out;
+}
+
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+p.subtitle {
+    color: #ff3333;
+    font-size: 0.95rem;
+    margin-bottom: 2.5rem;
+    line-height: 1.5;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+/* 3D Sunken Input */
+.form-control {
+    width: 100%;
+    padding: 1.2rem;
+    background: #1a1a1a;
+    border: none;
+    color: #e0e0e0;
+    border-radius: 22px;
+    font-size: 1rem;
+    box-shadow: inset 9px 9px 18px #0b0b0b, inset -9px -9px 18px #292929;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: #0b0b0b;
+}
+
+/* 3D Elevated Button */
+.submit-btn {
+    width: 100%;
+    padding: 1.2rem;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    border: none;
+    font-weight: 800;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 22px;
+    cursor: pointer;
+    box-shadow: 9px 9px 18px #0b0b0b, -9px -9px 18px #292929;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+}
+
+/* 3D Pressed Button */
+.submit-btn:active {
+    box-shadow: inset 7px 7px 14px #0b0b0b, inset -7px -7px 14px #292929;
+}
+
+.loader {
+    display: none;
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #e0e0e0;
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
