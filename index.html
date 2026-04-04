@@ -1,35 +1,47 @@
 <!DOCTYPE html>
+
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{NOMBRE_NEGOCIO}} | Agenda tu Cita</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/index.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{NOMBRE_NEGOCIO}} | Registro de Élite</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/index.css">
 </head>
 
 <body>
-    <div class="capture-card">
-        <img src="logo.png" alt="Logotipo Comunidad Code Art" class="logo-img">
-        <h1>comunidad code art</h1>
-        <form id="capture-form">
-            <div class="form-group">
-                <input type="text" id="name" class="form-control" placeholder="Nombre del Cliente" required>
-            </div>
-            <div class="form-group">
-                <input type="email" id="contact" class="form-control" placeholder="Email o WhatsApp (Ej: +506...)"
-                    required>
-            </div>
-            <button type="submit" class="submit-btn" id="submit-btn">puch the boton</button>
-        </form>
-        <div class="loader" id="loader">ENVIANDO SOLICITUD...</div>
-    </div>
+<div class="capture-card">
+<img src="assets/img/logo.png" alt="Logotipo INF01" class="logo-img">
+<h1>comunidad code art</h1>
+<form id="capture-form">
+<div class="form-group">
+<input type="text" id="name" class="form-control" placeholder="Nombre del Cliente" required>
+</div>
+<div class="form-group">
+<input type="email" id="contact" class="form-control" placeholder="Correo Electrónico (Ej: cliente@email.com)" required>
+</div>
+<button type="submit" class="submit-btn" id="submit-btn">PUCH THE BOTON</button>
+</form>
+<div class="loader" id="loader">ENVIANDO SOLICITUD...</div>
+</div>
 
-    <script>
-        const GOOGLE_SCRIPT_URL = '{{GOOGLE_SHEETS_URL}}';
-    </script>
-    <script src="js/index.js"></script>
+<script>
+    const GOOGLE_SCRIPT_URL = '{{GOOGLE_SHEETS_URL}}';
+
+    // Validación extra por Script para asegurar limpieza de datos
+    document.getElementById('capture-form').addEventListener('submit', function(e) {
+        const emailInput = document.getElementById('contact').value;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (!emailRegex.test(emailInput)) {
+            e.preventDefault();
+            alert('Por favor, ingrese un correo electrónico legítimo.');
+            return false;
+        }
+    });
+</script>
+<script src="js/index.js"></script>
 </body>
 
 </html>
