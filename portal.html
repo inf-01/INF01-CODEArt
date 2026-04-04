@@ -1,298 +1,310 @@
 <!DOCTYPE html>
+
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PERFIL DIGITAL | {{NOMBRE_NEGOCIO}}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/portal.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PERFIL DIGITAL | {{NOMBRE_NEGOCIO}}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/portal.css">
 </head>
 
 <body>
 
-    <div class="profile-header">
-        <div class="p-img-wrapper">
-            <img src="../avatar_impulsa.png" class="p-img" alt="Foto de Perfil"
-                onerror="this.src='https://placehold.co/120x120/dde2e6/4c5565?text=TS'">
-        </div>
-        <span class="p-tag">@{{NOMBRE_NEGOCIO}}</span>
-        <h1 class="p-name">{{NOMBRE_NEGOCIO}}</h1>
-        <p style="color: #7b8696; font-size: 0.9rem; margin-top: 10px;">Tattoo Studio & Fine Art</p>
+<div class="profile-header">
+    <div class="p-img-wrapper">
+        <img src="assets/img/logo.png" class="p-img" alt="Logo Estudio"
+            onerror="this.src='[https://placehold.co/120x120/000/fff?text=LOGO](https://placehold.co/120x120/000/fff?text=LOGO)'">
     </div>
+</div>
 
-    <div class="counter-badge" id="community-counter">
-        <i class="fas fa-users"></i> <span id="count-number">...</span> CLIENTES VIP
-    </div>
+<div class="counter-badge" id="community-counter">
+    <i class="fas fa-users"></i> Aliados: <span id="count-number">...</span>
+</div>
 
-    <div class="container">
-        <h3>Redes Sociales</h3>
-        <div class="social-mirror">
-            <a href="#" class="post-box">
-                <i class="fab fa-instagram"></i>
-                <span style="font-weight: 800; font-size: 0.55rem; letter-spacing: 1px;">INSTAGRAM</span>
-            </a>
-            <a href="#" class="post-box">
-                <i class="fab fa-facebook-f"></i>
-                <span style="font-weight: 800; font-size: 0.55rem; letter-spacing: 1px;">FACEBOOK</span>
-            </a>
-            <a href="#" class="post-box">
-                <i class="fab fa-tiktok"></i>
-                <span style="font-weight: 800; font-size: 0.55rem; letter-spacing: 1px;">TIKTOK</span>
-            </a>
-        </div>
-    </div>
-
-    <!-- SECCION ARTE CODE (Galería Infinita) -->
-    <h3 style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-        <i class="fas fa-code"></i> ARTE CODE
-    </h3>
-
-    <div class="gallery-container">
-        <div class="gallery-track">
-            <!-- Bloque Original -->
-            <div class="arte-card">
-                <div class="arte-card-header">
-                    <div class="arte-avatar">I01</div>
-                    <div class="arte-user-info">
-                        <span>{{NOMBRE_NEGOCIO}}</span>
-                        <small>Arte Digital • Hunter S. Gonzo</small>
-                    </div>
-                </div>
-                <div class="arte-img-wrapper">
-                    <iframe src="arte_code/hunter_thompson_gonzo_background.html" class="arte-img"
-                        title="Hunter Gonzo Art" loading="lazy" scrolling="no"></iframe>
-                </div>
-                <div class="arte-actions">
-                    <i class="far fa-heart"></i>
-                    <i class="far fa-comment"></i>
-                    <i class="fas fa-share-alt"></i>
-                </div>
-                <div class="arte-likes">2,203 Me gusta</div>
-                <div class="arte-desc">
-                    <strong>tendencias</strong> "Arte interactivo, cambia el trip y fluye con el gonzo periodismo."
-                </div>
-                <div class="arte-location">
-                    <i class="fas fa-map-marker-alt"></i> INF01 Hub
-                </div>
-            </div>
-
-            <div class="arte-card">
-                <div class="arte-card-header">
-                    <div class="arte-avatar">I01</div>
-                    <div class="arte-user-info">
-                        <span>{{NOMBRE_NEGOCIO}}</span>
-                        <small>Arte Digital • Dalí Surrealist</small>
-                    </div>
-                </div>
-                <div class="arte-img-wrapper">
-                    <iframe src="arte_code/dali_surrealist_background.html" class="arte-img" title="Dalí Surrealist Art"
-                        loading="lazy" scrolling="no"></iframe>
-                </div>
-                <div class="arte-actions">
-                    <i class="far fa-heart"></i>
-                    <i class="far fa-comment"></i>
-                    <i class="fas fa-share-alt"></i>
-                </div>
-                <div class="arte-likes">1,892 Me gusta</div>
-                <div class="arte-desc">
-                    <strong>tendencias</strong> "Relojes derretidos y pinceles digitales en movimiento."
-                </div>
-                <div class="arte-location">
-                    <i class="fas fa-map-marker-alt"></i> INF01 Hub
-                </div>
-            </div>
-
-            <div class="arte-card">
-                <div class="arte-card-header">
-                    <div class="arte-avatar">I01</div>
-                    <div class="arte-user-info">
-                        <span>{{NOMBRE_NEGOCIO}}</span>
-                        <small>Arte Digital • DaVinci Animated</small>
-                    </div>
-                </div>
-                <div class="arte-img-wrapper">
-                    <iframe src="arte_code/davinci_animated_background.html" class="arte-img" title="DaVinci Art"
-                        loading="lazy" scrolling="no"></iframe>
-                </div>
-                <div class="arte-actions">
-                    <i class="far fa-heart"></i>
-                    <i class="far fa-comment"></i>
-                    <i class="fas fa-share-alt"></i>
-                </div>
-                <div class="arte-likes">3,500 Me gusta</div>
-                <div class="arte-desc">
-                    <strong>tendencias</strong> "Leonardo resucitado en HTML y JS, bosquejos interactivos."
-                </div>
-                <div class="arte-location">
-                    <i class="fas fa-map-marker-alt"></i> INF01 Hub
-                </div>
-            </div>
-
-            <div class="arte-card">
-                <div class="arte-card-header">
-                    <div class="arte-avatar">I01</div>
-                    <div class="arte-user-info">
-                        <span>{{NOMBRE_NEGOCIO}}</span>
-                        <small>Arte Digital • Code Engine</small>
-                    </div>
-                </div>
-                <div class="arte-img-wrapper">
-                    <iframe src="arte_code/background_only_animated.html" class="arte-img" title="Motor Art"
-                        loading="lazy" scrolling="no"></iframe>
-                </div>
-                <div class="arte-actions">
-                    <i class="far fa-heart"></i>
-                    <i class="far fa-comment"></i>
-                    <i class="fas fa-share-alt"></i>
-                </div>
-                <div class="arte-likes">5,100 Me gusta</div>
-                <div class="arte-desc">
-                    <strong>tendencias</strong> "La esencia del motor INF01, líneas de código vivas."
-                </div>
-                <div class="arte-location">
-                    <i class="fas fa-map-marker-alt"></i> INF01 Hub
-                </div>
-            </div>
-
-            <!-- Bloque Duplicado -->
-            <div class="arte-card">
-                <div class="arte-card-header">
-                    <div class="arte-avatar">I01</div>
-                    <div class="arte-user-info">
-                        <span>{{NOMBRE_NEGOCIO}}</span>
-                        <small>Arte Digital • Hunter S. Gonzo</small>
-                    </div>
-                </div>
-                <div class="arte-img-wrapper">
-                    <iframe src="arte_code/hunter_thompson_gonzo_background.html" class="arte-img"
-                        title="Hunter Gonzo Art" loading="lazy" scrolling="no"></iframe>
-                </div>
-                <div class="arte-actions">
-                    <i class="far fa-heart"></i>
-                    <i class="far fa-comment"></i>
-                    <i class="fas fa-share-alt"></i>
-                </div>
-                <div class="arte-likes">2,203 Me gusta</div>
-                <div class="arte-desc">
-                    <strong>tendencias</strong> "Arte interactivo, cambia el trip y fluye con el gonzo periodismo."
-                </div>
-                <div class="arte-location">
-                    <i class="fas fa-map-marker-alt"></i> INF01 Hub
-                </div>
-            </div>
-
-            <div class="arte-card">
-                <div class="arte-card-header">
-                    <div class="arte-avatar">I01</div>
-                    <div class="arte-user-info">
-                        <span>{{NOMBRE_NEGOCIO}}</span>
-                        <small>Arte Digital • Dalí Surrealist</small>
-                    </div>
-                </div>
-                <div class="arte-img-wrapper">
-                    <iframe src="arte_code/dali_surrealist_background.html" class="arte-img" title="Dalí Surrealist Art"
-                        loading="lazy" scrolling="no"></iframe>
-                </div>
-                <div class="arte-actions">
-                    <i class="far fa-heart"></i>
-                    <i class="far fa-comment"></i>
-                    <i class="fas fa-share-alt"></i>
-                </div>
-                <div class="arte-likes">1,892 Me gusta</div>
-                <div class="arte-desc">
-                    <strong>tendencias</strong> "Relojes derretidos y pinceles digitales en movimiento."
-                </div>
-                <div class="arte-location">
-                    <i class="fas fa-map-marker-alt"></i> INF01 Hub
-                </div>
-            </div>
-
-            <div class="arte-card">
-                <div class="arte-card-header">
-                    <div class="arte-avatar">I01</div>
-                    <div class="arte-user-info">
-                        <span>{{NOMBRE_NEGOCIO}}</span>
-                        <small>Arte Digital • DaVinci Animated</small>
-                    </div>
-                </div>
-                <div class="arte-img-wrapper">
-                    <iframe src="arte_code/davinci_animated_background.html" class="arte-img" title="DaVinci Art"
-                        loading="lazy" scrolling="no"></iframe>
-                </div>
-                <div class="arte-actions">
-                    <i class="far fa-heart"></i>
-                    <i class="far fa-comment"></i>
-                    <i class="fas fa-share-alt"></i>
-                </div>
-                <div class="arte-likes">3,500 Me gusta</div>
-                <div class="arte-desc">
-                    <strong>tendencias</strong> "Leonardo resucitado en HTML y JS, bosquejos interactivos."
-                </div>
-                <div class="arte-location">
-                    <i class="fas fa-map-marker-alt"></i> INF01 Hub
-                </div>
-            </div>
-
-            <div class="arte-card">
-                <div class="arte-card-header">
-                    <div class="arte-avatar">I01</div>
-                    <div class="arte-user-info">
-                        <span>{{NOMBRE_NEGOCIO}}</span>
-                        <small>Arte Digital • Code Engine</small>
-                    </div>
-                </div>
-                <div class="arte-img-wrapper">
-                    <iframe src="arte_code/background_only_animated.html" class="arte-img" title="Motor Art"
-                        loading="lazy" scrolling="no"></iframe>
-                </div>
-                <div class="arte-actions">
-                    <i class="far fa-heart"></i>
-                    <i class="far fa-comment"></i>
-                    <i class="fas fa-share-alt"></i>
-                </div>
-                <div class="arte-likes">5,100 Me gusta</div>
-                <div class="arte-desc">
-                    <strong>tendencias</strong> "La esencia del motor INF01, líneas de código vivas."
-                </div>
-                <div class="arte-location">
-                    <i class="fas fa-map-marker-alt"></i> INF01 Hub
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="container">
-        <h3>Contacto Directo</h3>
-        <a href="https://wa.me/{{WHATSAPP_CLIENTE}}" target="_blank" class="wp-btn">
-            <i class="fab fa-whatsapp"></i> HABLAR POR WHATSAPP
+<div class="container">
+    <h3>Redes Sociales</h3>
+    <div class="social-mirror">
+        <a href="#" class="post-box">
+            <i class="fab fa-instagram"></i>
+            <span style="font-weight: 800; font-size: 0.55rem; letter-spacing: 1px;">INSTAGRAM</span>
         </a>
+        <a href="#" class="post-box">
+            <i class="fab fa-facebook-f"></i>
+            <span style="font-weight: 800; font-size: 0.55rem; letter-spacing: 1px;">FACEBOOK</span>
+        </a>
+        <a href="#" class="post-box">
+            <i class="fab fa-tiktok"></i>
+            <span style="font-weight: 800; font-size: 0.55rem; letter-spacing: 1px;">TIKTOK</span>
+        </a>
+    </div>
+</div>
 
-        <h3 id="admin-title" style="margin-top: 3rem; display: none;">Administración (Owner)</h3>
-        <div id="admin-panel" class="admin-card" style="display: none;">
-            <p><i class="fas fa-paper-plane"></i> Envía promociones a todos los clientes registrados.</p>
-            <textarea id="broadcast-message" rows="3" placeholder="Mensaje masivo para los clientes..."></textarea>
-            <button id="send-broadcast-btn">ENVIAR BROADCAST</button>
-            <div id="broadcast-status">ENVIANDO MENSAJES...</div>
+<h3 style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+    <i class="fas fa-code"></i> ARTE CODE
+</h3>
+
+<div class="gallery-container">
+    <div class="gallery-track">
+        <div class="arte-card">
+            <div class="arte-card-header">
+                <div class="arte-avatar">I01</div>
+                <div class="arte-user-info">
+                    <span>{{NOMBRE_NEGOCIO}}</span>
+                    <small>Arte Digital • Hunter S. Gonzo</small>
+                </div>
+            </div>
+            <div class="arte-img-wrapper">
+                <iframe src="arte_code/hunter_thompson_gonzo_background.html" class="arte-img"
+                    title="Hunter Gonzo Art" loading="lazy" scrolling="no"></iframe>
+            </div>
+            <div class="arte-actions">
+                <i class="far fa-heart"></i>
+                <i class="far fa-comment"></i>
+                <i class="fas fa-share-alt"></i>
+            </div>
+            <div class="arte-likes">2,203 Me gusta</div>
+            <div class="arte-desc">
+                <strong>tendencias</strong> "Arte interactivo, cambia el trip y fluye con el gonzo periodismo."
+            </div>
+            <div class="arte-location">
+                <i class="fas fa-map-marker-alt"></i> INF01 Hub
+            </div>
+        </div>
+
+        <div class="arte-card">
+            <div class="arte-card-header">
+                <div class="arte-avatar">I01</div>
+                <div class="arte-user-info">
+                    <span>{{NOMBRE_NEGOCIO}}</span>
+                    <small>Arte Digital • Dalí Surrealist</small>
+                </div>
+            </div>
+            <div class="arte-img-wrapper">
+                <iframe src="arte_code/dali_surrealist_background.html" class="arte-img" title="Dalí Surrealist Art"
+                    loading="lazy" scrolling="no"></iframe>
+            </div>
+            <div class="arte-actions">
+                <i class="far fa-heart"></i>
+                <i class="far fa-comment"></i>
+                <i class="fas fa-share-alt"></i>
+            </div>
+            <div class="arte-likes">1,892 Me gusta</div>
+            <div class="arte-desc">
+                <strong>tendencias</strong> "Relojes derretidos y pinceles digitales en movimiento."
+            </div>
+            <div class="arte-location">
+                <i class="fas fa-map-marker-alt"></i> INF01 Hub
+            </div>
+        </div>
+
+        <div class="arte-card">
+            <div class="arte-card-header">
+                <div class="arte-avatar">I01</div>
+                <div class="arte-user-info">
+                    <span>{{NOMBRE_NEGOCIO}}</span>
+                    <small>Arte Digital • DaVinci Animated</small>
+                </div>
+            </div>
+            <div class="arte-img-wrapper">
+                <iframe src="arte_code/davinci_animated_background.html" class="arte-img" title="DaVinci Art"
+                    loading="lazy" scrolling="no"></iframe>
+            </div>
+            <div class="arte-actions">
+                <i class="far fa-heart"></i>
+                <i class="far fa-comment"></i>
+                <i class="fas fa-share-alt"></i>
+            </div>
+            <div class="arte-likes">3,500 Me gusta</div>
+            <div class="arte-desc">
+                <strong>tendencias</strong> "Leonardo resucitado en HTML y JS, bosquejos interactivos."
+            </div>
+            <div class="arte-location">
+                <i class="fas fa-map-marker-alt"></i> INF01 Hub
+            </div>
+        </div>
+
+        <div class="arte-card">
+            <div class="arte-card-header">
+                <div class="arte-avatar">I01</div>
+                <div class="arte-user-info">
+                    <span>{{NOMBRE_NEGOCIO}}</span>
+                    <small>Arte Digital • Code Engine</small>
+                </div>
+            </div>
+            <div class="arte-img-wrapper">
+                <iframe src="arte_code/background_only_animated.html" class="arte-img" title="Motor Art"
+                    loading="lazy" scrolling="no"></iframe>
+            </div>
+            <div class="arte-actions">
+                <i class="far fa-heart"></i>
+                <i class="far fa-comment"></i>
+                <i class="fas fa-share-alt"></i>
+            </div>
+            <div class="arte-likes">5,100 Me gusta</div>
+            <div class="arte-desc">
+                <strong>tendencias</strong> "La esencia del motor INF01, líneas de código vivas."
+            </div>
+            <div class="arte-location">
+                <i class="fas fa-map-marker-alt"></i> INF01 Hub
+            </div>
+        </div>
+
+        <div class="arte-card">
+            <div class="arte-card-header">
+                <div class="arte-avatar">I01</div>
+                <div class="arte-user-info">
+                    <span>{{NOMBRE_NEGOCIO}}</span>
+                    <small>Arte Digital • Hunter S. Gonzo</small>
+                </div>
+            </div>
+            <div class="arte-img-wrapper">
+                <iframe src="arte_code/hunter_thompson_gonzo_background.html" class="arte-img"
+                    title="Hunter Gonzo Art" loading="lazy" scrolling="no"></iframe>
+            </div>
+            <div class="arte-actions">
+                <i class="far fa-heart"></i>
+                <i class="far fa-comment"></i>
+                <i class="fas fa-share-alt"></i>
+            </div>
+            <div class="arte-likes">2,203 Me gusta</div>
+            <div class="arte-desc">
+                <strong>tendencias</strong> "Arte interactivo, cambia el trip y fluye con el gonzo periodismo."
+            </div>
+            <div class="arte-location">
+                <i class="fas fa-map-marker-alt"></i> INF01 Hub
+            </div>
+        </div>
+
+        <div class="arte-card">
+            <div class="arte-card-header">
+                <div class="arte-avatar">I01</div>
+                <div class="arte-user-info">
+                    <span>{{NOMBRE_NEGOCIO}}</span>
+                    <small>Arte Digital • Dalí Surrealist</small>
+                </div>
+            </div>
+            <div class="arte-img-wrapper">
+                <iframe src="arte_code/dali_surrealist_background.html" class="arte-img" title="Dalí Surrealist Art"
+                    loading="lazy" scrolling="no"></iframe>
+            </div>
+            <div class="arte-actions">
+                <i class="far fa-heart"></i>
+                <i class="far fa-comment"></i>
+                <i class="fas fa-share-alt"></i>
+            </div>
+            <div class="arte-likes">1,892 Me gusta</div>
+            <div class="arte-desc">
+                <strong>tendencias</strong> "Relojes derretidos y pinceles digitales en movimiento."
+            </div>
+            <div class="arte-location">
+                <i class="fas fa-map-marker-alt"></i> INF01 Hub
+            </div>
+        </div>
+
+        <div class="arte-card">
+            <div class="arte-card-header">
+                <div class="arte-avatar">I01</div>
+                <div class="arte-user-info">
+                    <span>{{NOMBRE_NEGOCIO}}</span>
+                    <small>Arte Digital • DaVinci Animated</small>
+                </div>
+            </div>
+            <div class="arte-img-wrapper">
+                <iframe src="arte_code/davinci_animated_background.html" class="arte-img" title="DaVinci Art"
+                    loading="lazy" scrolling="no"></iframe>
+            </div>
+            <div class="arte-actions">
+                <i class="far fa-heart"></i>
+                <i class="far fa-comment"></i>
+                <i class="fas fa-share-alt"></i>
+            </div>
+            <div class="arte-likes">3,500 Me gusta</div>
+            <div class="arte-desc">
+                <strong>tendencias</strong> "Leonardo resucitado en HTML y JS, bosquejos interactivos."
+            </div>
+            <div class="arte-location">
+                <i class="fas fa-map-marker-alt"></i> INF01 Hub
+            </div>
+        </div>
+
+        <div class="arte-card">
+            <div class="arte-card-header">
+                <div class="arte-avatar">I01</div>
+                <div class="arte-user-info">
+                    <span>{{NOMBRE_NEGOCIO}}</span>
+                    <small>Arte Digital • Code Engine</small>
+                </div>
+            </div>
+            <div class="arte-img-wrapper">
+                <iframe src="arte_code/background_only_animated.html" class="arte-img" title="Motor Art"
+                    loading="lazy" scrolling="no"></iframe>
+            </div>
+            <div class="arte-actions">
+                <i class="far fa-heart"></i>
+                <i class="far fa-comment"></i>
+                <i class="fas fa-share-alt"></i>
+            </div>
+            <div class="arte-likes">5,100 Me gusta</div>
+            <div class="arte-desc">
+                <strong>tendencias</strong> "La esencia del motor INF01, líneas de código vivas."
+            </div>
+            <div class="arte-location">
+                <i class="fas fa-map-marker-alt"></i> INF01 Hub
+            </div>
         </div>
     </div>
+</div>
 
-    <!-- Lightbox Modal -->
-    <div id="lightbox" class="lightbox-overlay">
-        <span class="lightbox-close">&times;</span>
-        <img id="lightbox-img" class="lightbox-content" src="">
+<div class="container">
+    <h3>Contacto Directo</h3>
+    <a href="[https://wa.me/](https://wa.me/){{WHATSAPP_CLIENTE}}" target="_blank" class="wp-btn">
+        <i class="fab fa-whatsapp"></i> HABLAR POR WHATSAPP
+    </a>
+
+    <h3 id="admin-title" style="margin-top: 3rem; display: none;">Administración (Owner)</h3>
+    <div id="admin-panel" class="admin-card" style="display: none;">
+        <p><i class="fas fa-paper-plane"></i> Envía promociones a todos los clientes registrados.</p>
+        <textarea id="broadcast-message" rows="3" placeholder="Mensaje masivo para los clientes..."></textarea>
+        <button id="send-broadcast-btn">ENVIAR BROADCAST</button>
+        <div id="broadcast-status">ENVIANDO MENSAJES...</div>
     </div>
+</div>
 
-    <footer>ESTUDIO DIGITAL by {{NOMBRE_NEGOCIO}} ©️ 2026</footer>
+<div id="lightbox" class="lightbox-overlay">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightbox-img" class="lightbox-content" src="">
+</div>
 
-    <script>
-        // Variables globales
-        const GOOGLE_SCRIPT_URL = '{{GOOGLE_SHEETS_URL}}';
-        const WHATSAPP_TOKEN_API = '{{WHATSAPP_TOKEN_API}}';
-        const WHATSAPP_PHONE_ID = '{{WHATSAPP_PHONE_ID}}';
-    </script>
-    <script src="js/portal.js"></script>
+<footer>ESTUDIO DIGITAL by {{NOMBRE_NEGOCIO}} ©️ 2026</footer>
+
+<script>
+    // Variables globales
+    const GOOGLE_SCRIPT_URL = '{{GOOGLE_SHEETS_URL}}';
+    const WHATSAPP_TOKEN_API = '{{WHATSAPP_TOKEN_API}}';
+    const WHATSAPP_PHONE_ID = '{{WHATSAPP_PHONE_ID}}';
+
+    // Lógica del contador dinámico de Aliados (Integrada)
+    async function updateCounter() {
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL + "?action=getCount");
+            const data = await response.json();
+            if(data && data.count) {
+                document.getElementById('count-number').innerText = data.count;
+            } else {
+                document.getElementById('count-number').innerText = '0';
+            }
+        } catch (error) {
+            console.error('Error al cargar el contador:', error);
+            document.getElementById('count-number').innerText = '0';
+        }
+    }
+    
+    window.addEventListener('DOMContentLoaded', updateCounter);
+</script>
+<script src="js/portal.js"></script>
 </body>
 
 </html>
