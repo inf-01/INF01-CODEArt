@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dalí Surrealista — ARTE CODE</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: #1a0e05; overflow: hidden; }
+#app { width: 100%; height: 100%; display: flex; flex-direction: column; }
+.canvas-area { position: relative; flex: 1; overflow: hidden; }
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.controls { background: #100900; border-top: 1px solid #2a1800; padding: 10px 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+.ctrl-label { font-family: monospace; font-size: 10px; letter-spacing: 2px; color: #5a3a10; text-transform: uppercase; margin-right: 4px; }
+.ctrl-btn { background: #1a1000; color: #8a5a20; border: 1px solid #3a2000; padding: 6px 12px; font-family: monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; transition: all 0.18s; text-transform: uppercase; }
+.ctrl-btn:hover { background: #d4820a; color: #100900; border-color: #d4820a; }
+.export-btn { margin-left: auto; background: #d4820a; color: #100900; border: none; padding: 7px 16px; font-family: monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; font-weight: 700; text-transform: uppercase; }
+.export-btn:hover { background: #f0a030; }
+.toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(20px); background: #d4820a; color: #100900; font-family: monospace; font-size: 11px; padding: 10px 20px; border-radius: 2px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 99; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="canvas-area" id="canvasArea">
+    <canvas id="bg"></canvas>
+    <div class="toast" id="toast"></div>
+  </div>
+  <div class="controls">
+    <span class="ctrl-label">Sueño:</span>
+    <button class="ctrl-btn" id="btn0" onclick="setMode(0)">Persistencia</button>
+    <button class="ctrl-btn" id="btn1" onclick="setMode(1)">Elefantes</button>
+    <button class="ctrl-btn" id="btn2" onclick="setMode(2)">Tentación</button>
+    <button class="ctrl-btn" id="btn3" onclick="setMode(3)">Cosmos</button>
+    <button class="export-btn" onclick="exportCanvas()">Exportar PNG ↓</button>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('bg'),ctx=canvas.getContext('2d');
+let W,H,tick=0,mode=0;
+const palettes=[
+  {bg:'#1a0e05',horizon:'#8b4500',sky1:'#1a0e00',sky2:'#3d1800',road:'#1a1500',accent:'#c8a000',accent2:'#ff6600',neon:'#ff2200',dark:'#050400'},
+  {bg:'#050010',horizon:'#cc0044',sky1:'#0a0020',sky2:'#200040',road:'#0a0015',accent:'#ff00cc',accent2:'#00ffcc',neon:'#ffcc00',dark:'#020008'},
+  {bg:'#001a00',horizon:'#005500',sky1:'#001000',sky2:'#003300',road:'#001500',accent:'#00ff44',accent2:'#ffcc00',neon:'#ff4400',dark:'#000a00'},
+  {bg:'#1a0000',horizon:'#550000',sky1:'#0f0000',sky2:'#2a0000',road:'#150000',accent:'#ff3300',accent2:'#ff9900',neon:'#ffffff',dark:'#080000'},
+];
+let dust=[];
+
+function resize(){const area=document.getElementById('canvasArea');W=area.offsetWidth;H=area.offsetHeight;canvas.width=W;canvas.height=H;}
+function initDust(){dust=[];for(let i=0;i<40;i++)dust.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.2,vy:-Math.random()*0.15-0.05,phase:Math.random()*Math.PI*2});}
+
+function drawSky(p){const g=ctx.createLinearGradient(0,0,0,H*0.65);g.addColorStop(0,p.sky1);g.addColorStop(1,p.sky2);ctx.fillStyle=g;ctx.fillRect(0,0,W,H*0.65);}
+function drawGround(p,t){ctx.save();const g=ctx.createLinearGradient(0,H*0.62,0,H);g.addColorStop(0,p.ground||p.sky2);g.addColorStop(1,p.dark);ctx.fillStyle=g;ctx.fillRect(0,H*0.62,W,H*0.38);ctx.globalAlpha=0.08;ctx.fillStyle=p.accent2;ctx.beginPath();ctx.ellipse(W*0.5,H*0.68,W*0.45,H*0.04,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+function drawMesa(x,y,w,h,p,alpha){ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=p.dark;ctx.beginPath();ctx.moveTo(x,y+h);ctx.lineTo(x+w*0.1,y+h*0.3);ctx.lineTo(x+w*0.2,y+h*0.1);ctx.lineTo(x+w*0.5,y);ctx.lineTo(x+w*0.8,y+h*0.15);ctx.lineTo(x+w*0.9,y+h*0.4);ctx.lineTo(x+w,y+h);ctx.closePath();ctx.fill();ctx.restore();}
+
+function drawMeltingClock(cx,cy,r,melt,rot,alpha,p){
+  ctx.save();ctx.globalAlpha=alpha;ctx.translate(cx,cy);ctx.rotate(rot);
+  ctx.save();ctx.scale(1,1+Math.sin(tick*0.003)*0.04);ctx.strokeStyle=p.accent;ctx.lineWidth=1.2;ctx.fillStyle=p.accent+'22';ctx.beginPath();ctx.ellipse(0,0,r,r*0.92,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.strokeStyle=p.accent;ctx.lineWidth=0.8;for(let i=0;i<12;i++){const a=i/12*Math.PI*2;const inner=i%3===0?r*0.75:r*0.85;ctx.beginPath();ctx.moveTo(Math.cos(a)*inner,Math.sin(a)*inner);ctx.lineTo(Math.cos(a)*r*0.95,Math.sin(a)*r*0.95);ctx.stroke();}
+  const hA=tick*0.002,mA=tick*0.008;ctx.strokeStyle=p.accent2;ctx.lineWidth=1.5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(hA)*r*0.5,Math.sin(hA)*r*0.5);ctx.stroke();ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(mA)*r*0.72,Math.sin(mA)*r*0.72);ctx.stroke();ctx.restore();
+  const droop=melt*r*1.6;ctx.strokeStyle=p.accent;ctx.fillStyle=p.accent+'33';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-r*0.4,r*0.5);ctx.bezierCurveTo(-r*0.5,r*0.5+droop*0.5,-r*0.15,r*0.5+droop*0.9,0,r*0.5+droop);ctx.bezierCurveTo(r*0.15,r*0.5+droop*0.9,r*0.5,r*0.5+droop*0.5,r*0.4,r*0.5);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.globalAlpha=alpha*0.8;ctx.fillStyle=p.accent;ctx.beginPath();ctx.ellipse(0,r*0.5+droop+r*0.12,r*0.07,r*0.12,0,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+
+function drawEye(cx,cy,r,t,alpha,p){
+  ctx.save();ctx.globalAlpha=alpha;ctx.translate(cx,cy+Math.sin(t*0.006)*8);
+  ctx.strokeStyle=p.accent;ctx.lineWidth=1;ctx.fillStyle=p.dark;ctx.beginPath();ctx.moveTo(-r,0);ctx.bezierCurveTo(-r*0.5,-r*0.5,r*0.5,-r*0.5,r,0);ctx.bezierCurveTo(r*0.5,r*0.5,-r*0.5,r*0.5,-r,0);ctx.fill();ctx.stroke();
+  ctx.fillStyle=p.accent2+'aa';ctx.beginPath();ctx.arc(0,0,r*0.42,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=p.dark;ctx.beginPath();ctx.arc(0,0,r*0.2,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=p.accent+'cc';ctx.beginPath();ctx.arc(-r*0.1,-r*0.12,r*0.08,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+
+function drawElephant(cx,cy,size,t,alpha,p){
+  ctx.save();ctx.globalAlpha=alpha;ctx.translate(cx,cy);const bob=Math.sin(t*0.004)*4;
+  ctx.fillStyle=p.dark;ctx.strokeStyle=p.accent2;ctx.lineWidth=1;
+  ctx.beginPath();ctx.ellipse(0,-size*0.15+bob,size*0.55,size*0.35,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.ellipse(-size*0.45,-size*0.1+bob,size*0.28,size*0.25,-0.2,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.strokeStyle=p.accent2;ctx.lineWidth=size*0.06;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-size*0.68,-size*0.02+bob);ctx.bezierCurveTo(-size*0.9,size*0.1+bob+Math.sin(t*0.007)*6,-size*0.95,size*0.3+bob,-size*0.75,size*0.42+bob);ctx.stroke();
+  ctx.fillStyle=p.accent+'55';ctx.strokeStyle=p.accent2;ctx.lineWidth=0.8;ctx.beginPath();ctx.ellipse(-size*0.38,-size*0.05+bob,size*0.18,size*0.22,-0.4,0,Math.PI*2);ctx.fill();ctx.stroke();
+  const legPositions=[-0.3,-0.05,0.2,0.42];ctx.strokeStyle=p.accent2;ctx.lineCap='round';
+  legPositions.forEach((lx,i)=>{const side=i<2?-1:1,legX=lx*size,legTopY=size*0.18+bob,kneeX=legX+side*(size*0.25+Math.sin(t*0.003+i)*5),kneeY=size*0.65+Math.sin(t*0.004+i*0.5)*3,footX=legX+side*(size*0.05),footY=size*1.4;ctx.lineWidth=size*0.025;ctx.beginPath();ctx.moveTo(legX,legTopY);ctx.lineTo(kneeX,kneeY);ctx.stroke();ctx.lineWidth=size*0.018;ctx.beginPath();ctx.moveTo(kneeX,kneeY);ctx.lineTo(footX,footY);ctx.stroke();ctx.fillStyle=p.accent2;ctx.beginPath();ctx.ellipse(footX,footY,size*0.04,size*0.015,0,0,Math.PI*2);ctx.fill();});
+  ctx.restore();
+}
+
+function drawSphere(cx,cy,r,t,alpha,p){
+  ctx.save();ctx.globalAlpha=alpha;ctx.translate(cx,cy+Math.sin(t*0.004)*6);
+  const g=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.05,0,0,r);g.addColorStop(0,p.accent+'ff');g.addColorStop(0.6,p.accent2+'aa');g.addColorStop(1,p.dark+'ee');
+  ctx.fillStyle=g;ctx.strokeStyle=p.accent;ctx.lineWidth=0.8;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.strokeStyle=p.dark+'88';ctx.lineWidth=0.5;[-0.5,0,0.5].forEach(frac=>{const yr=r*frac,xr=Math.sqrt(Math.max(0,r*r-yr*yr));ctx.beginPath();ctx.ellipse(0,yr,xr,xr*0.3,0,0,Math.PI*2);ctx.stroke();});
+  ctx.fillStyle=p.dark;for(let i=0;i<6;i++){const a=t*0.01+i*(Math.PI*2/6);ctx.beginPath();ctx.arc(Math.cos(a)*r*0.75,Math.sin(a)*r*0.5,1.5,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+}
+
+function drawFrame(cx,cy,w,h,t,p,alpha){
+  ctx.save();ctx.globalAlpha=alpha*(0.7+Math.sin(t*0.04)*0.3);ctx.translate(cx,cy);ctx.strokeStyle=p.accent;ctx.lineWidth=1.2;ctx.fillStyle=p.sky2+'44';
+  ctx.beginPath();ctx.moveTo(-w/2,-h/2);ctx.bezierCurveTo(-w/2+Math.sin(t*0.004)*8,-h*0.1,-w/2+Math.sin(t*0.003+1)*6,h*0.3,-w/2,h/2);ctx.bezierCurveTo(-w*0.2,h/2+Math.sin(t*0.005)*5,w*0.2,h/2+Math.sin(t*0.004)*4,w/2,h/2);ctx.bezierCurveTo(w/2+Math.sin(t*0.004)*7,h*0.2,w/2+Math.sin(t*0.003)*5,-h*0.2,w/2,-h/2);ctx.bezierCurveTo(w*0.2,-h/2-Math.sin(t*0.005)*4,-w*0.2,-h/2-Math.sin(t*0.004)*5,-w/2,-h/2);ctx.fill();ctx.stroke();ctx.restore();
+}
+
+function drawDust(alpha){
+  const p=palettes[mode];
+  dust.forEach(d=>{d.x+=d.vx+Math.sin(tick*0.008+d.phase)*0.15;d.y+=d.vy;if(d.y<-5){d.y=H+5;d.x=Math.random()*W;}
+  ctx.save();ctx.globalAlpha=alpha*(0.15+Math.sin(tick*0.02+d.phase)*0.08);ctx.fillStyle=p.accent;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();ctx.restore();});
+}
+
+function drawMode0(t){const p=palettes[0];drawSky(p);drawGround(p,t);drawMesa(W*0.55,H*0.18,W*0.5,H*0.46,p,0.9);drawMesa(W*-0.02,H*0.3,W*0.35,H*0.35,p,0.7);ctx.save();ctx.fillStyle=p.dark;ctx.fillRect(W*0.05,H*0.5,W*0.45,H*0.18);ctx.strokeStyle=p.road;ctx.lineWidth=0.8;ctx.strokeRect(W*0.05,H*0.5,W*0.45,H*0.18);ctx.restore();drawMeltingClock(W*0.18,H*0.47,38,1.1,0.2,0.85,p);drawMeltingClock(W*0.38,H*0.44,44,0.9,-0.15,0.9,p);drawMeltingClock(W*0.62,H*0.38,34,0.7,0.4,0.75,p);drawMeltingClock(W*0.8,H*0.52,28,0.5,-0.3,0.6,p);drawEye(W*0.5,H*0.25,22,t,0.7,p);drawDust(0.6);}
+function drawMode1(t){const p=palettes[1];drawSky(p);drawGround(p,t);drawMesa(W*0.6,H*0.1,W*0.45,H*0.55,p,0.8);drawElephant(W*0.25,H*0.52,85,t,0.9,p);drawElephant(W*0.65,H*0.5,65,t+100,0.75,p);drawElephant(W*0.82,H*0.54,45,t+200,0.55,p);drawSphere(W*0.18,H*0.3,22,t,0.7,p);drawMeltingClock(W*0.55,H*0.3,28,0.6,0.3,0.6,p);drawEye(W*0.78,H*0.22,18,t,0.65,p);drawDust(0.6);}
+function drawMode2(t){const p=palettes[2];drawSky(p);drawGround(p,t);drawSphere(W*0.15,H*0.22,28,t,0.8,p);drawSphere(W*0.5,H*0.18,18,t+50,0.7,p);drawSphere(W*0.82,H*0.28,24,t+120,0.75,p);drawFrame(W*0.3,H*0.42,70,100,t,p,0.6);drawFrame(W*0.65,H*0.44,55,85,t+80,p,0.5);drawElephant(W*0.7,H*0.5,70,t,0.8,p);drawMeltingClock(W*0.15,H*0.5,32,0.8,0.2,0.7,p);drawEye(W*0.5,H*0.35,25,t,0.8,p);drawDust(0.6);}
+function drawMode3(t){const p=palettes[3];ctx.fillStyle=p.dark;ctx.fillRect(0,0,W,H);ctx.save();for(let i=0;i<100;i++){const sx=(i*137.5)%W,sy=(i*79.3)%H;ctx.globalAlpha=0.1+(i%5)*0.05;ctx.fillStyle=p.accent;ctx.beginPath();ctx.arc(sx,sy,0.5+(i%3)*0.4,0,Math.PI*2);ctx.fill();}ctx.restore();drawGround(p,t);[0.3,0.6,1.0,1.4].forEach((r,i)=>{ctx.save();ctx.globalAlpha=0.06-i*0.01;ctx.strokeStyle=i%2===0?p.accent:p.accent2;ctx.lineWidth=i%2===0?1.5:0.8;ctx.beginPath();ctx.arc(W*0.5,H*0.4,W*r,0,Math.PI*2);ctx.stroke();ctx.restore();});drawSphere(W*0.5,H*0.35,40,t,0.9,p);drawElephant(W*0.2,H*0.55,75,t,0.7,p);drawElephant(W*0.75,H*0.53,60,t+150,0.6,p);drawMeltingClock(W*0.35,H*0.3,30,0.7,-0.2,0.65,p);drawMeltingClock(W*0.7,H*0.35,26,0.5,0.3,0.6,p);drawEye(W*0.5,H*0.18,28,t,0.8,p);drawFrame(W*0.15,H*0.4,60,90,t,p,0.5);drawDust(0.6);}
+
+function loop(){tick++;if(mode===0)drawMode0(tick);else if(mode===1)drawMode1(tick);else if(mode===2)drawMode2(tick);else if(mode===3)drawMode3(tick);requestAnimationFrame(loop);}
+
+function setMode(idx){
+  mode=idx;const p=palettes[idx];
+  document.getElementById('app').style.background=p.dark;
+  document.querySelector('.controls').style.background=p.dark;
+  [0,1,2,3].forEach(i=>{const b=document.getElementById('btn'+i);b.style.background='';b.style.color=palettes[idx].accent2;b.style.borderColor='#2a1000';});
+  const ab=document.getElementById('btn'+idx);ab.style.background=p.accent;ab.style.color=p.dark;ab.style.borderColor=p.accent;
+  document.querySelector('.export-btn').style.background=p.accent;document.querySelector('.export-btn').style.color=p.dark;
+}
+
+function exportCanvas(){const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='dali-arte.png';a.click();const t=document.getElementById('toast');t.textContent='Imagen exportada ✓';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+window.addEventListener('resize',()=>{resize();initDust();});
+resize();initDust();loop();setMode(0);
+</script>
+</body>
+</html>

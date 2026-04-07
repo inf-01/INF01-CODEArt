@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hunter S. Thompson Gonzo — ARTE CODE</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: #0a0800; overflow: hidden; }
+#app { width: 100%; height: 100%; display: flex; flex-direction: column; }
+.canvas-area { position: relative; flex: 1; overflow: hidden; }
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.controls { background: #080600; border-top: 1px solid #1a1200; padding: 10px 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+.ctrl-label { font-family: monospace; font-size: 10px; letter-spacing: 2px; color: #4a3a00; text-transform: uppercase; margin-right: 4px; }
+.ctrl-btn { background: #100d00; color: #7a6010; border: 1px solid #2a1e00; padding: 6px 12px; font-family: monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; transition: all 0.18s; text-transform: uppercase; }
+.ctrl-btn:hover { background: #c8a000; color: #080600; border-color: #c8a000; }
+.export-btn { margin-left: auto; background: #c8a000; color: #080600; border: none; padding: 7px 16px; font-family: monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; font-weight: 700; text-transform: uppercase; }
+.export-btn:hover { background: #f0c800; }
+.toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(20px); background: #c8a000; color: #080600; font-family: monospace; font-size: 11px; padding: 10px 20px; border-radius: 2px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 99; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="canvas-area" id="canvasArea">
+    <canvas id="bg"></canvas>
+    <div class="toast" id="toast"></div>
+  </div>
+  <div class="controls">
+    <span class="ctrl-label">Trip:</span>
+    <button class="ctrl-btn" id="btn0" onclick="setMode(0)">Barstow</button>
+    <button class="ctrl-btn" id="btn1" onclick="setMode(1)">Las Vegas</button>
+    <button class="ctrl-btn" id="btn2" onclick="setMode(2)">Gonzo</button>
+    <button class="ctrl-btn" id="btn3" onclick="setMode(3)">Miedo</button>
+    <button class="export-btn" onclick="exportCanvas()">Exportar PNG ↓</button>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('bg'),ctx=canvas.getContext('2d');
+let W,H,tick=0,mode=0;
+let bats=[],stars=[],sparks=[],typeChars=[];
+const palettes=[
+  {bg:'#0a0800',horizon:'#8b4500',sky1:'#1a0e00',sky2:'#3d1800',road:'#1a1500',accent:'#c8a000',accent2:'#ff6600',neon:'#ff2200',dark:'#050400'},
+  {bg:'#050010',horizon:'#cc0044',sky1:'#0a0020',sky2:'#200040',road:'#0a0015',accent:'#ff00cc',accent2:'#00ffcc',neon:'#ffcc00',dark:'#020008'},
+  {bg:'#001a00',horizon:'#005500',sky1:'#001000',sky2:'#003300',road:'#001500',accent:'#00ff44',accent2:'#ffcc00',neon:'#ff4400',dark:'#000a00'},
+  {bg:'#1a0000',horizon:'#550000',sky1:'#0f0000',sky2:'#2a0000',road:'#150000',accent:'#ff3300',accent2:'#ff9900',neon:'#ffffff',dark:'#080000'},
+];
+
+function resize(){const area=document.getElementById('canvasArea');W=area.offsetWidth;H=area.offsetHeight;canvas.width=W;canvas.height=H;}
+
+function initBats(count){bats=[];for(let i=0;i<count;i++)bats.push({x:Math.random()*W,y:Math.random()*H*0.6,vx:(Math.random()-0.5)*2.5,vy:(Math.random()-0.5)*1.5,size:8+Math.random()*18,flapPhase:Math.random()*Math.PI*2,flapSpeed:0.08+Math.random()*0.1,wobble:Math.random()*Math.PI*2});}
+function initStars(){stars=[];for(let i=0;i<120;i++)stars.push({x:Math.random()*W,y:Math.random()*H*0.55,r:Math.random()*1.4+0.3,phase:Math.random()*Math.PI*2,speed:Math.random()*0.5+0.5});}
+function initSparks(){sparks=[];for(let i=0;i<30;i++)sparks.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,life:Math.random(),decay:0.008+Math.random()*0.015,r:Math.random()*2+0.5});}
+function initTypeChars(){const gc=['@','#','!','?','*','&','%','$','~','>','<','|','^','//','..','!!'];typeChars=[];for(let i=0;i<25;i++)typeChars.push({x:Math.random()*W,y:Math.random()*H,char:gc[Math.floor(Math.random()*gc.length)],alpha:Math.random(),phase:Math.random()*Math.PI*2,size:10+Math.random()*18});}
+
+function drawBat(b,p,alpha){
+  const flap=Math.sin(b.flapPhase)*0.8;ctx.save();ctx.globalAlpha=alpha*(0.6+Math.sin(b.wobble)*0.3);ctx.translate(b.x,b.y);ctx.fillStyle=p.dark;ctx.strokeStyle=p.accent;ctx.lineWidth=0.6;
+  ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(-b.size*0.3,-b.size*0.2+flap*b.size*0.3,-b.size*0.7,-b.size*0.1+flap*b.size*0.4,-b.size,b.size*0.1+flap*b.size*0.2);ctx.bezierCurveTo(-b.size*0.8,b.size*0.35,-b.size*0.5,b.size*0.3,-b.size*0.2,b.size*0.15);ctx.bezierCurveTo(-b.size*0.1,b.size*0.25,0,b.size*0.2,0,0);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(b.size*0.3,-b.size*0.2+flap*b.size*0.3,b.size*0.7,-b.size*0.1+flap*b.size*0.4,b.size,b.size*0.1+flap*b.size*0.2);ctx.bezierCurveTo(b.size*0.8,b.size*0.35,b.size*0.5,b.size*0.3,b.size*0.2,b.size*0.15);ctx.bezierCurveTo(b.size*0.1,b.size*0.25,0,b.size*0.2,0,0);ctx.fill();ctx.stroke();
+  ctx.fillStyle=p.accent+'cc';ctx.beginPath();ctx.ellipse(0,0,b.size*0.1,b.size*0.18,0,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+
+function updateBats(){bats.forEach(b=>{b.x+=b.vx+Math.sin(b.wobble*0.3)*0.5;b.y+=b.vy+Math.cos(b.wobble*0.2)*0.3;b.flapPhase+=b.flapSpeed;b.wobble+=0.02;if(b.x<-b.size*2)b.x=W+b.size;if(b.x>W+b.size*2)b.x=-b.size;if(b.y<-b.size*2)b.y=H*0.6;if(b.y>H*0.65){b.y=10;b.vy=Math.abs(b.vy)*0.5;}});}
+
+function drawHighway(p,t){
+  const hy=H*0.58,vx=W*0.5;ctx.save();ctx.fillStyle=p.road;ctx.beginPath();ctx.moveTo(vx-20,hy);ctx.lineTo(vx+20,hy);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+  ctx.strokeStyle=p.accent+'55';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(vx-20,hy);ctx.lineTo(0,H);ctx.stroke();ctx.beginPath();ctx.moveTo(vx+20,hy);ctx.lineTo(W,H);ctx.stroke();
+  const speed=(t*3)%1;for(let i=0;i<10;i++){const frac=((i/10)+speed)%1,zScale=frac*frac,lx=vx,ly=hy+(H-hy)*frac,dw=3+zScale*12,dh=2+zScale*18;ctx.globalAlpha=0.3+zScale*0.5;ctx.fillStyle=p.accent;ctx.fillRect(lx-dw/2,ly-dh/2,dw,dh);}
+  ctx.restore();
+}
+
+function drawSky(p){const g=ctx.createLinearGradient(0,0,0,H*0.6);g.addColorStop(0,p.sky1);g.addColorStop(1,p.sky2);ctx.fillStyle=g;ctx.fillRect(0,0,W,H*0.6);}
+function drawHorizon(p){ctx.save();const hy=H*0.58,g=ctx.createRadialGradient(W*0.5,hy,0,W*0.5,hy,W*0.6);g.addColorStop(0,p.horizon+'cc');g.addColorStop(0.3,p.horizon+'44');g.addColorStop(1,p.horizon+'00');ctx.fillStyle=g;ctx.fillRect(0,hy-H*0.15,W,H*0.2);ctx.restore();}
+
+function drawStars(p,alpha){stars.forEach(s=>{const twinkle=0.3+Math.sin(tick*s.speed*0.05+s.phase)*0.4;ctx.save();ctx.globalAlpha=alpha*twinkle;ctx.fillStyle=p.neon;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();ctx.restore();});}
+
+function drawNeonSign(cx,cy,w,h,t,p,alpha){
+  ctx.save();const flicker=Math.sin(t*0.13)>0.85?0.2:1;ctx.globalAlpha=alpha*flicker;ctx.strokeStyle=p.accent;ctx.lineWidth=2;ctx.strokeRect(cx-w/2,cy-h/2,w,h);ctx.globalAlpha=alpha*flicker*0.5;ctx.strokeRect(cx-w/2+6,cy-h/2+6,w-12,h-12);ctx.globalAlpha=alpha*flicker*0.7;ctx.strokeStyle=p.accent2;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(cx,cy-h*0.3);ctx.lineTo(cx+w*0.3,cy);ctx.lineTo(cx,cy+h*0.3);ctx.lineTo(cx-w*0.3,cy);ctx.closePath();ctx.stroke();ctx.fillStyle=p.neon;[[0,1],[1,0],[0,-1],[-1,0]].forEach(([dx,dy])=>{ctx.beginPath();ctx.arc(cx+dx*w*0.45,cy+dy*h*0.45,3,0,Math.PI*2);ctx.fill();});ctx.restore();
+}
+
+function drawRipples(cx,cy,t,p,alpha){for(let i=0;i<8;i++){const phase=(t*0.01+i*0.4)%(Math.PI*2),r=30+i*35+Math.sin(phase)*15,a=Math.max(0,0.35-i*0.04);ctx.save();ctx.globalAlpha=alpha*a;ctx.strokeStyle=i%2===0?p.accent:p.accent2;ctx.lineWidth=0.8;ctx.beginPath();ctx.ellipse(cx,cy,r,r*(0.5+Math.sin(phase*0.3)*0.2),phase*0.05,0,Math.PI*2);ctx.stroke();ctx.restore();}}
+
+function drawGonzoFist(cx,cy,size,t,p,alpha){
+  ctx.save();ctx.globalAlpha=alpha;ctx.translate(cx,cy);ctx.rotate(Math.sin(t*0.003)*0.05);ctx.strokeStyle=p.accent;ctx.fillStyle=p.accent+'22';ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.arc(0,size*0.15,size*0.38,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-size*0.2,0);ctx.bezierCurveTo(-size*0.35,-size*0.3,-size*0.15,-size*0.55,0,-size*0.6);ctx.bezierCurveTo(size*0.15,-size*0.55,size*0.35,-size*0.3,size*0.2,0);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.strokeStyle=p.accent2;ctx.lineWidth=1;[-1,1].forEach(side=>{ctx.beginPath();ctx.moveTo(side*size*0.35,-size*0.1);ctx.bezierCurveTo(side*size*0.7,-size*0.4,side*size*0.9,-size*0.1,side*size*0.75,size*0.15);ctx.bezierCurveTo(side*size*0.6,size*0.35,side*size*0.4,size*0.2,side*size*0.35,size*0.1);ctx.closePath();ctx.fill();ctx.stroke();});
+  ctx.fillStyle=p.neon+'aa';for(let i=0;i<5;i++){const a=(i/5)*Math.PI-Math.PI*0.1;ctx.beginPath();ctx.arc(Math.cos(a)*size*0.22,size*0.1+Math.sin(a)*size*0.15,size*0.05,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+}
+
+function drawTypeNoise(p,alpha){typeChars.forEach(c=>{const a=alpha*(0.15+Math.sin(tick*0.03+c.phase)*0.12);ctx.save();ctx.globalAlpha=a;ctx.fillStyle=p.accent;ctx.font=`${c.size}px monospace`;ctx.fillText(c.char,c.x,c.y);ctx.restore();c.x+=Math.sin(c.phase*0.1)*0.08;c.y+=Math.cos(c.phase*0.08)*0.05;if(c.x>W+20)c.x=0;if(c.x<-20)c.x=W;if(c.y>H+20)c.y=0;if(c.y<-20)c.y=H;});}
+
+function drawSparks(p,alpha){sparks.forEach(s=>{s.life-=s.decay;s.x+=s.vx*s.life;s.y+=s.vy*s.life+0.15;if(s.life<=0){s.life=0.8+Math.random()*0.5;s.x=Math.random()*W;s.y=H*0.55+Math.random()*H*0.1;s.vx=(Math.random()-0.5)*4;s.vy=-Math.random()*3-1;}ctx.save();ctx.globalAlpha=alpha*s.life*0.6;ctx.fillStyle=s.life>0.5?p.neon:p.accent2;ctx.beginPath();ctx.arc(s.x,s.y,s.r*s.life,0,Math.PI*2);ctx.fill();ctx.restore();});}
+
+function drawDistortion(p,t,alpha){for(let i=0;i<5;i++){const y=H*0.15+i*(H*0.08);ctx.save();ctx.globalAlpha=alpha*(0.08-i*0.01);ctx.strokeStyle=i%2===0?p.accent:p.accent2;ctx.lineWidth=0.6;ctx.beginPath();ctx.moveTo(0,y);for(let x=0;x<=W;x+=4){const wave=Math.sin(x*0.02+t*0.03+i)*(8+i*3)+Math.sin(x*0.008+t*0.015)*12;ctx.lineTo(x,y+wave);}ctx.stroke();ctx.restore();}}
+
+function drawSpeedLines(p,alpha,t){ctx.save();const cx=W*0.5,cy=H*0.58;for(let i=0;i<20;i++){const a=(i/20)*Math.PI*2,r1=W*0.3+Math.sin(t*0.005+i)*20,r2=W*0.55+Math.sin(t*0.004+i*0.5)*30;ctx.globalAlpha=alpha*(0.04+(i%3)*0.01);ctx.strokeStyle=p.accent;ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1*0.3);ctx.lineTo(cx+Math.cos(a)*r2,cy+Math.sin(a)*r2*0.25);ctx.stroke();}ctx.restore();}
+
+function drawMode0(t){const p=palettes[0];ctx.fillStyle=p.bg;ctx.fillRect(0,0,W,H);drawSky(p);drawStars(p,0.7);drawDistortion(p,t,0.6);drawHorizon(p);drawHighway(p,t);drawSpeedLines(p,0.5,t);drawRipples(W*0.5,H*0.58,t,p,0.3);updateBats();bats.forEach(b=>drawBat(b,p,0.85));drawTypeNoise(p,0.8);drawSparks(p,0.6);}
+function drawMode1(t){const p=palettes[1];ctx.fillStyle=p.bg;ctx.fillRect(0,0,W,H);drawSky(p);drawStars(p,0.5);drawDistortion(p,t,0.8);drawHorizon(p);drawHighway(p,t);drawNeonSign(W*0.2,H*0.3,80,60,t,p,0.8);drawNeonSign(W*0.75,H*0.25,100,70,t+30,p,0.75);drawNeonSign(W*0.5,H*0.42,60,45,t+60,p,0.6);drawRipples(W*0.2,H*0.3,t,p,0.4);drawRipples(W*0.75,H*0.25,t+50,p,0.35);updateBats();bats.forEach(b=>drawBat(b,p,0.7));drawTypeNoise(p,0.7);drawSparks(p,0.9);}
+function drawMode2(t){const p=palettes[2];ctx.fillStyle=p.bg;ctx.fillRect(0,0,W,H);drawSky(p);drawStars(p,0.4);drawDistortion(p,t,1.0);drawHorizon(p);drawHighway(p,t);drawGonzoFist(W*0.5,H*0.32,80,t,p,0.8);drawRipples(W*0.5,H*0.32,t,p,0.5);drawRipples(W*0.15,H*0.45,t+40,p,0.35);drawRipples(W*0.85,H*0.4,t+80,p,0.35);updateBats();bats.forEach(b=>drawBat(b,p,0.75));drawTypeNoise(p,1.0);drawSparks(p,0.7);}
+function drawMode3(t){const p=palettes[3];ctx.fillStyle=p.bg;ctx.fillRect(0,0,W,H);drawSky(p);drawStars(p,0.3);drawDistortion(p,t,0.9);drawHorizon(p);drawHighway(p,t);updateBats();bats.forEach(b=>drawBat(b,p,0.95));bats.slice(0,4).forEach(b=>{ctx.save();ctx.globalAlpha=0.25;ctx.translate(b.x*0.5+W*0.25,b.y*0.5+H*0.1);ctx.scale(2.5,2.5);drawBat({...b,x:0,y:0},p,0.4);ctx.restore();});drawRipples(W*0.5,H*0.5,t,p,0.4);drawGonzoFist(W*0.15,H*0.35,50,t,p,0.5);drawNeonSign(W*0.72,H*0.32,75,55,t,p,0.6);drawSpeedLines(p,0.8,t);drawTypeNoise(p,0.9);drawSparks(p,1.0);}
+
+function loop(){tick++;if(mode===0)drawMode0(tick);else if(mode===1)drawMode1(tick);else if(mode===2)drawMode2(tick);else if(mode===3)drawMode3(tick);requestAnimationFrame(loop);}
+
+function setMode(idx){
+  mode=idx;const p=palettes[idx];
+  document.getElementById('app').style.background=p.dark;document.querySelector('.controls').style.background=p.dark;
+  [0,1,2,3].forEach(i=>{const b=document.getElementById('btn'+i);b.style.background='';b.style.color=palettes[idx].accent+'99';b.style.borderColor=palettes[idx].dark;});
+  const ab=document.getElementById('btn'+idx);ab.style.background=p.accent;ab.style.color=p.dark;ab.style.borderColor=p.accent;
+  document.querySelector('.export-btn').style.background=p.accent;document.querySelector('.export-btn').style.color=p.dark;
+  initBats(mode===3?18:10);
+}
+
+function exportCanvas(){const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='gonzo-arte.png';a.click();const t=document.getElementById('toast');t.textContent='Imagen exportada ✓';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+window.addEventListener('resize',()=>{resize();initBats(10);initStars();initSparks();initTypeChars();});
+resize();initBats(mode===3?18:10);initStars();initSparks();initTypeChars();loop();setMode(0);
+</script>
+</body>
+</html>

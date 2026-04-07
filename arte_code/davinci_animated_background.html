@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Da Vinci — ARTE CODE</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: #1a1408; overflow: hidden; }
+#app { width: 100%; height: 100%; display: flex; flex-direction: column; }
+.canvas-area { position: relative; flex: 1; overflow: hidden; }
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.controls { background: #120f06; border-top: 1px solid #2a2210; padding: 10px 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+.ctrl-label { font-family: monospace; font-size: 10px; letter-spacing: 2px; color: #5a4a2a; text-transform: uppercase; margin-right: 4px; }
+.ctrl-btn { background: #1e1808; color: #8a7040; border: 1px solid #3a2e10; padding: 6px 12px; font-family: monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; transition: all 0.18s; text-transform: uppercase; }
+.ctrl-btn:hover { background: #c8a84a; color: #1a1408; border-color: #c8a84a; }
+.export-btn { margin-left: auto; background: #c8a84a; color: #1a1408; border: none; padding: 7px 16px; font-family: monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; font-weight: 700; text-transform: uppercase; }
+.export-btn:hover { background: #e8c870; }
+.toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(20px); background: #c8a84a; color: #1a1408; font-family: monospace; font-size: 11px; padding: 10px 20px; border-radius: 2px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 99; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="canvas-area" id="canvasArea">
+    <canvas id="bg"></canvas>
+    <div class="toast" id="toast"></div>
+  </div>
+  <div class="controls">
+    <span class="ctrl-label">Modo:</span>
+    <button class="ctrl-btn" id="btn0" onclick="setMode(0)">Códice</button>
+    <button class="ctrl-btn" id="btn1" onclick="setMode(1)">Geometría</button>
+    <button class="ctrl-btn" id="btn2" onclick="setMode(2)">Anatomía</button>
+    <button class="ctrl-btn" id="btn3" onclick="setMode(3)">Cosmos</button>
+    <button class="export-btn" onclick="exportCanvas()">Exportar PNG ↓</button>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+let W, H, tick = 0, mode = 0;
+const PHI = 1.6180339887;
+const palettes = [
+  { bg:'#1a1408', ink:'#c8a84a', ink2:'#8a6020', faint:'#3a2e10', paper:'#2a2010' },
+  { bg:'#0d1a10', ink:'#4ac880', ink2:'#206840', faint:'#102a18', paper:'#0a1a0c' },
+  { bg:'#0a0f1a', ink:'#6a9ad8', ink2:'#204880', faint:'#101828', paper:'#080d18' },
+  { bg:'#1a0a0a', ink:'#d87060', ink2:'#802020', faint:'#2a1010', paper:'#140808' },
+];
+let dust = [];
+
+function resize() {
+  const area = document.getElementById('canvasArea');
+  W = area.offsetWidth; H = area.offsetHeight;
+  canvas.width = W; canvas.height = H;
+}
+
+function initDust() {
+  dust = [];
+  for (let i=0;i<50;i++) dust.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+0.2,vx:(Math.random()-0.5)*0.15,vy:-Math.random()*0.2-0.05,phase:Math.random()*Math.PI*2});
+}
+
+function sketchLine(x1,y1,x2,y2,alpha,width){
+  const p=palettes[mode];
+  ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=p.ink;ctx.lineWidth=width||0.6;ctx.lineCap='round';
+  const mx=(x1+x2)/2+(Math.random()-0.5)*2,my=(y1+y2)/2+(Math.random()-0.5)*2;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(mx,my,x2,y2);ctx.stroke();ctx.restore();
+}
+
+function sketchArc(cx,cy,r,a1,a2,alpha,width){
+  const p=palettes[mode];
+  ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=p.ink;ctx.lineWidth=width||0.6;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(cx,cy,r,a1,a2);ctx.stroke();ctx.restore();
+}
+
+function drawGoldenSpiral(cx,cy,scale,alpha){
+  const p=palettes[mode];ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=p.ink;ctx.lineWidth=0.8;
+  let x=cx,y=cy,s=scale;const dirs=[[1,0],[0,1],[-1,0],[0,-1]];let d=0;
+  for(let i=0;i<7;i++){const[dx,dy]=dirs[d%4];const startA=[Math.PI,-Math.PI/2,0,Math.PI/2][d%4];
+  ctx.beginPath();ctx.arc(x+dx*s,y+dy*s,s,startA+Math.PI,startA+Math.PI/2+Math.PI);ctx.stroke();
+  x+=dx*s;y+=dy*s;if(i%2===1)s*=PHI;d++;}ctx.restore();
+}
+
+function drawVitruvian(cx,cy,r,t,alpha){
+  const p=palettes[mode];ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=p.ink;ctx.lineWidth=0.7;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(t*0.003);ctx.strokeRect(-r*0.75,-r*0.75,r*1.5,r*1.5);ctx.restore();
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(-t*0.005);ctx.beginPath();
+  for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2-Math.PI/2;i===0?ctx.moveTo(Math.cos(a)*r*0.6,Math.sin(a)*r*0.6):ctx.lineTo(Math.cos(a)*r*0.6,Math.sin(a)*r*0.6);}
+  ctx.closePath();ctx.stroke();
+  for(let i=0;i<5;i++){const a1=(i/5)*Math.PI*2-Math.PI/2,a2=((i+2)/5)*Math.PI*2-Math.PI/2;ctx.globalAlpha=alpha*0.3;ctx.beginPath();ctx.moveTo(Math.cos(a1)*r*0.6,Math.sin(a1)*r*0.6);ctx.lineTo(Math.cos(a2)*r*0.6,Math.sin(a2)*r*0.6);ctx.stroke();}
+  ctx.restore();ctx.restore();
+}
+
+function drawFlowerOfLife(cx,cy,r,alpha){
+  const p=palettes[mode];ctx.save();ctx.globalAlpha=alpha*0.5;ctx.strokeStyle=p.ink2;ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+  for(let i=0;i<6;i++){const a=i*Math.PI/3,ox=cx+Math.cos(a)*r,oy=cy+Math.sin(a)*r;ctx.beginPath();ctx.arc(ox,oy,r,0,Math.PI*2);ctx.stroke();}
+  ctx.restore();
+}
+
+function drawHatching(x,y,w,h,angle,density,alpha){
+  const p=palettes[mode];ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=p.ink2;ctx.lineWidth=0.4;
+  ctx.translate(x+w/2,y+h/2);ctx.rotate(angle);
+  for(let i=-w;i<w;i+=density){ctx.beginPath();ctx.moveTo(i,-h);ctx.lineTo(i,h);ctx.stroke();}
+  ctx.restore();
+}
+
+function drawCompass(cx,cy,r,t,alpha){
+  const p=palettes[mode];ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=p.ink;ctx.lineWidth=0.6;
+  ctx.translate(cx,cy);ctx.rotate(t*0.002);
+  for(let i=0;i<8;i++){const a=i*Math.PI/4;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);ctx.stroke();}
+  for(let ring=1;ring<=3;ring++){ctx.globalAlpha=alpha*(0.6-ring*0.15);ctx.beginPath();ctx.arc(0,0,r*(ring/3),0,Math.PI*2);ctx.stroke();}
+  ctx.restore();
+}
+
+function drawOrrery(cx,cy,t,alpha){
+  const p=palettes[mode];
+  const orbits=[{rx:60,ry:20,tilt:0.2,speed:0.004,dotR:3},{rx:100,ry:35,tilt:-0.3,speed:0.003,dotR:4},{rx:150,ry:55,tilt:0.5,speed:0.002,dotR:3},{rx:200,ry:70,tilt:-0.15,speed:0.0015,dotR:5}];
+  ctx.save();ctx.translate(cx,cy);
+  orbits.forEach(o=>{ctx.save();ctx.rotate(o.tilt);ctx.globalAlpha=alpha*0.35;ctx.strokeStyle=p.ink2;ctx.lineWidth=0.5;ctx.beginPath();ctx.ellipse(0,0,o.rx,o.ry,0,0,Math.PI*2);ctx.stroke();
+  const a=t*o.speed,px=Math.cos(a)*o.rx,py=Math.sin(a)*o.ry;ctx.globalAlpha=alpha*0.9;ctx.fillStyle=p.ink;ctx.beginPath();ctx.arc(px,py,o.dotR,0,Math.PI*2);ctx.fill();ctx.restore();});
+  ctx.globalAlpha=alpha;ctx.fillStyle=p.ink;ctx.beginPath();ctx.arc(0,0,5,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+
+function drawAnatomyLines(cx,cy,h,t,alpha){
+  const joints=[[cx,cy-h*0.32],[cx,cy-h*0.1],[cx,cy+h*0.15],[cx-h*0.12,cy-h*0.05],[cx+h*0.12,cy-h*0.05],[cx-h*0.14,cy+h*0.15],[cx+h*0.14,cy+h*0.15],[cx-h*0.08,cy+h*0.32],[cx+h*0.08,cy+h*0.32]];
+  const bones=[[0,1],[1,2],[1,3],[1,4],[3,5],[4,6],[5,7],[6,8]];
+  sketchArc(cx,cy-h*0.42,h*0.1,0,Math.PI*2,alpha*0.5,0.6);
+  bones.forEach(([a,b])=>sketchLine(joints[a][0],joints[a][1],joints[b][0],joints[b][1],alpha*0.4,0.5));
+  for(let i=0;i<8;i++){const yy=cy-h*0.45+i*(h/7);sketchLine(cx+h*0.22,yy,cx+h*0.28,yy,alpha*0.25,0.4);}
+}
+
+function drawManuscriptGrid(alpha){
+  const p=palettes[mode];ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=p.faint;ctx.lineWidth=0.3;
+  for(let x=0;x<W;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.restore();
+}
+
+function drawDust(alpha){
+  const p=palettes[mode];
+  dust.forEach(d=>{d.x+=d.vx+Math.sin(tick*0.01+d.phase)*0.1;d.y+=d.vy;if(d.y<-5){d.y=H+5;d.x=Math.random()*W;}
+  ctx.save();ctx.globalAlpha=alpha*(0.2+Math.sin(tick*0.02+d.phase)*0.1);ctx.fillStyle=p.ink;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();ctx.restore();});
+}
+
+function drawMode0(t){const p=palettes[0];ctx.fillStyle=p.bg;ctx.fillRect(0,0,W,H);drawManuscriptGrid(0.4);drawGoldenSpiral(W*0.65,H*0.5,18+Math.sin(t*0.001)*3,0.55);drawFlowerOfLife(W*0.2,H*0.35,38,0.5);drawVitruvian(W*0.5,H*0.52,90+Math.sin(t*0.002)*5,t,0.45);drawCompass(W*0.82,H*0.2,50,t,0.4);drawAnatomyLines(W*0.15,H*0.6,H*0.7,t,0.5);drawHatching(W*0.55,H*0.1,120,80,0.4,6,0.08);drawDust(0.6);}
+function drawMode1(t){const p=palettes[1];ctx.fillStyle=p.bg;ctx.fillRect(0,0,W,H);drawManuscriptGrid(0.5);const shapes=[3,4,5,6,8];shapes.forEach((n,i)=>{ctx.save();ctx.translate(W*0.5,H*0.5);ctx.rotate(t*0.001*(i%2===0?1:-1)+i);ctx.globalAlpha=0.25-i*0.02;ctx.strokeStyle=p.ink;ctx.lineWidth=0.7;const r=60+i*38+Math.sin(t*0.002+i)*10;ctx.beginPath();for(let j=0;j<n;j++){const a=j/n*Math.PI*2-Math.PI/2;j===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}ctx.closePath();ctx.stroke();ctx.restore();});let gx=W*0.05,gy=H*0.1,gs=H*0.8;ctx.save();for(let i=0;i<6;i++){ctx.globalAlpha=0.15-i*0.02;ctx.strokeStyle=p.ink;ctx.lineWidth=0.6;ctx.strokeRect(gx,gy,gs/PHI,gs);gx+=gs/PHI;gs=gs/PHI;}ctx.restore();drawFlowerOfLife(W*0.78,H*0.25,45,0.6);drawGoldenSpiral(W*0.72,H*0.72,14,0.5);drawCompass(W*0.15,H*0.75,55,t,0.45);drawDust(0.5);}
+function drawMode2(t){const p=palettes[2];ctx.fillStyle=p.bg;ctx.fillRect(0,0,W,H);drawManuscriptGrid(0.35);drawAnatomyLines(W*0.25,H*0.5,H*0.75,t,0.7);drawAnatomyLines(W*0.65,H*0.52,H*0.65,t+200,0.5);[0.25,0.65].forEach((xr)=>{const cx=W*xr,cy=H*0.5;[50,90,130,170].forEach((r,j)=>{sketchArc(cx,cy,r+Math.sin(t*0.002+j)*4,0,Math.PI*2,0.06,0.5);});});for(let i=0;i<12;i++){const yy=H*0.12+i*(H*0.76/11);sketchLine(W*0.05,yy,W*0.95,yy,0.04,0.4);}drawCompass(W*0.5,H*0.15,40,t,0.35);drawDust(0.55);}
+function drawMode3(t){const p=palettes[3];ctx.fillStyle=p.bg;ctx.fillRect(0,0,W,H);ctx.save();for(let i=0;i<80;i++){const sx=(i*137.5)%W,sy=(i*97.3)%H,sr=0.5+(i%3)*0.4;ctx.globalAlpha=0.2+(i%5)*0.06;ctx.fillStyle=p.ink;ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.fill();}ctx.restore();drawManuscriptGrid(0.2);drawOrrery(W*0.5,H*0.5,t,0.85);drawFlowerOfLife(W*0.5,H*0.5,60,0.25);const stars=[[0.1,0.15],[0.3,0.08],[0.45,0.2],[0.7,0.1],[0.85,0.25],[0.9,0.7],[0.75,0.85],[0.5,0.9],[0.2,0.8],[0.08,0.6]];const conLines=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,0],[2,7]];conLines.forEach(([a,b])=>{sketchLine(stars[a][0]*W,stars[a][1]*H,stars[b][0]*W,stars[b][1]*H,0.12,0.4);});stars.forEach(([sx,sy],i)=>{sketchArc(sx*W,sy*H,3+Math.sin(t*0.01+i)*1,0,Math.PI*2,0.5,0.8);});drawCompass(W*0.15,H*0.15,45,t,0.4);drawGoldenSpiral(W*0.82,H*0.78,12,0.4);drawDust(0.4);}
+
+function loop(){tick++;if(mode===0)drawMode0(tick);else if(mode===1)drawMode1(tick);else if(mode===2)drawMode2(tick);else if(mode===3)drawMode3(tick);requestAnimationFrame(loop);}
+
+function setMode(idx){
+  mode=idx;const p=palettes[idx];
+  document.getElementById('app').style.background=p.bg;
+  document.querySelector('.controls').style.background=p.paper;
+  [0,1,2,3].forEach(i=>{const b=document.getElementById('btn'+i);b.style.background='';b.style.color=palettes[idx].ink2;b.style.borderColor=palettes[idx].faint;});
+  const ab=document.getElementById('btn'+idx);ab.style.background=p.ink;ab.style.color=p.bg;ab.style.borderColor=p.ink;
+  document.querySelector('.export-btn').style.background=p.ink;
+}
+
+function exportCanvas(){
+  const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='davinci-arte.png';a.click();
+  const t=document.getElementById('toast');t.textContent='Imagen exportada ✓';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+window.addEventListener('resize',()=>{resize();initDust();});
+resize();initDust();loop();setMode(0);
+</script>
+</body>
+</html>

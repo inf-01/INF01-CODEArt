@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Universo Danza — ARTE CODE</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: #000008; overflow: hidden; }
+#app { width: 100%; height: 100%; display: flex; flex-direction: column; }
+.canvas-area { position: relative; flex: 1; overflow: hidden; }
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.controls { background: #03020f; border-top: 1px solid #0a0820; padding: 10px 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+.ctrl-label { font-family: monospace; font-size: 10px; letter-spacing: 2px; color: #2a2060; text-transform: uppercase; margin-right: 4px; }
+.ctrl-btn { background: #06041a; color: #5050a0; border: 1px solid #10083a; padding: 6px 12px; font-family: monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; transition: all 0.2s; text-transform: uppercase; }
+.ctrl-btn:hover { background: #8060ff; color: #000; border-color: #8060ff; }
+.export-btn { margin-left: auto; background: #8060ff; color: #000008; border: none; padding: 7px 16px; font-family: monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; font-weight: 700; text-transform: uppercase; }
+.export-btn:hover { background: #b090ff; }
+.toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(20px); background: #8060ff; color: #000; font-family: monospace; font-size: 11px; padding: 10px 20px; border-radius: 2px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 99; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="canvas-area" id="canvasArea">
+    <canvas id="bg"></canvas>
+    <canvas id="stars"></canvas>
+    <div class="toast" id="toast"></div>
+  </div>
+  <div class="controls">
+    <span class="ctrl-label">Danza:</span>
+    <button class="ctrl-btn" id="btn0" onclick="setMode(0)">Galaxia</button>
+    <button class="ctrl-btn" id="btn1" onclick="setMode(1)">Nebulosa</button>
+    <button class="ctrl-btn" id="btn2" onclick="setMode(2)">Pulsar</button>
+    <button class="ctrl-btn" id="btn3" onclick="setMode(3)">Caos</button>
+    <button class="ctrl-btn" id="btn4" onclick="toggleSpeed()">Velocidad</button>
+    <button class="export-btn" onclick="exportCanvas()">Exportar PNG ↓</button>
+  </div>
+</div>
+<script>
+const bgCanvas = document.getElementById('bg');
+const stCanvas = document.getElementById('stars');
+const bgCtx = bgCanvas.getContext('2d');
+const ctx = stCanvas.getContext('2d');
+let W, H, tick = 0, mode = 0, speedMult = 1;
+let stars = [], nebulaClouds = [];
+
+const colorSets = [
+  ['#ffffff','#ffe4a0','#a0c8ff','#c080ff','#80ffff','#ff80c0','#ffcc40','#80ff80','#ff8040','#4080ff'],
+  ['#ff60a0','#ff30ff','#00ffcc','#ff8000','#ff00aa','#00ccff','#ffff00','#ff4060','#40ffaa','#cc80ff'],
+  ['#ffffff','#e0f0ff','#80e0ff','#40c0ff','#0080ff','#ffffff','#c0e8ff','#60b0ff','#ffffff','#a0d0ff'],
+  ['#ff0040','#ff8000','#ffff00','#00ff40','#00ffff','#0040ff','#8000ff','#ff0080','#ff4000','#00ff80'],
+];
+
+function resize() {
+  const area = document.getElementById('canvasArea');
+  W = area.offsetWidth; H = area.offsetHeight;
+  bgCanvas.width = stCanvas.width = W;
+  bgCanvas.height = stCanvas.height = H;
+  drawDeepBackground();
+}
+
+function drawDeepBackground() {
+  bgCtx.fillStyle = '#000008'; bgCtx.fillRect(0,0,W,H);
+  for (let i=0;i<300;i++) {
+    const x=Math.random()*W, y=Math.random()*H, r=Math.random()*0.8+0.1, a=Math.random()*0.4+0.05;
+    bgCtx.save(); bgCtx.globalAlpha=a; bgCtx.fillStyle='#ffffff';
+    bgCtx.beginPath(); bgCtx.arc(x,y,r,0,Math.PI*2); bgCtx.fill(); bgCtx.restore();
+  }
+}
+
+function initStars() {
+  stars = [];
+  const cols = colorSets[mode];
+  const cx = W/2, cy = H/2;
+  const ringCount = 18;
+  for (let ring=0;ring<ringCount;ring++) {
+    const radius = 18 + ring*(Math.min(W,H)*0.48/ringCount);
+    const starsInRing = Math.floor(6+ring*2.8);
+    const ringSpeed = (0.008+Math.random()*0.012)*(ring%2===0?1:-1);
+    const ringTilt = (Math.random()-0.5)*0.5;
+    const ringPhaseOffset = Math.random()*Math.PI*2;
+    const ringColor = cols[ring%cols.length];
+    const ringColor2 = cols[(ring+3)%cols.length];
+    for (let s=0;s<starsInRing;s++) {
+      stars.push({
+        ring, radius, baseAngle:(s/starsInRing)*Math.PI*2+ringPhaseOffset,
+        ringSpeed, selfSpin:(Math.random()-0.5)*0.08, ringTilt,
+        wobble:Math.random()*0.05, wobblePhase:Math.random()*Math.PI*2,
+        size:0.6+Math.random()*2.8+(ring<3?1.5:0),
+        brightness:0.4+Math.random()*0.6,
+        color:Math.random()>0.5?ringColor:ringColor2,
+        hasGlow:Math.random()>0.55,
+        twinkleSpeed:0.02+Math.random()*0.06,
+        twinklePhase:Math.random()*Math.PI*2,
+        angle:(s/starsInRing)*Math.PI*2+ringPhaseOffset,
+        selfAngle:Math.random()*Math.PI*2,
+      });
+    }
+  }
+  for (let i=0;i<120;i++) {
+    const r=Math.random()*Math.min(W,H)*0.52, a=Math.random()*Math.PI*2;
+    stars.push({ ring:-1, x:cx+Math.cos(a)*r, y:cy+Math.sin(a)*r, vx:(Math.random()-0.5)*0.12, vy:(Math.random()-0.5)*0.12, size:0.4+Math.random()*1.5, brightness:0.2+Math.random()*0.5, color:cols[Math.floor(Math.random()*cols.length)], twinkleSpeed:0.015+Math.random()*0.04, twinklePhase:Math.random()*Math.PI*2, hasGlow:Math.random()>0.7 });
+  }
+  for (let i=0;i<60;i++) {
+    const r=Math.random()*16, a=Math.random()*Math.PI*2;
+    stars.push({ ring:-2, x:cx+Math.cos(a)*r, y:cy+Math.sin(a)*r, vx:Math.cos(a+Math.PI/2)*0.08, vy:Math.sin(a+Math.PI/2)*0.08, size:0.5+Math.random()*1.8, brightness:0.6+Math.random()*0.4, color:cols[Math.floor(Math.random()*cols.length)], twinkleSpeed:0.04+Math.random()*0.06, twinklePhase:Math.random()*Math.PI*2, hasGlow:true });
+  }
+}
+
+function initNebulaClouds() {
+  nebulaClouds = [];
+  const cols = colorSets[mode];
+  for (let i=0;i<6;i++) {
+    nebulaClouds.push({ x:W*0.2+Math.random()*W*0.6, y:H*0.15+Math.random()*H*0.7, rx:40+Math.random()*100, ry:30+Math.random()*80, angle:Math.random()*Math.PI, color:cols[i%cols.length], alpha:0.015+Math.random()*0.025, rotSpeed:(Math.random()-0.5)*0.001 });
+  }
+}
+
+function getModeSpeedFactor() { return [1.0,0.7,2.2,1.6][mode]||1; }
+
+function drawFrame() {
+  const cx=W/2, cy=H/2, sf=getModeSpeedFactor()*speedMult, t=tick;
+  ctx.fillStyle='rgba(0,0,8,0.18)'; ctx.fillRect(0,0,W,H);
+  nebulaClouds.forEach(n => {
+    n.angle+=n.rotSpeed*sf;
+    ctx.save(); ctx.translate(n.x,n.y); ctx.rotate(n.angle+Math.sin(t*0.002)*0.1);
+    const g=ctx.createRadialGradient(0,0,0,0,0,Math.max(n.rx,n.ry));
+    g.addColorStop(0,n.color+'40'); g.addColorStop(0.5,n.color+'15'); g.addColorStop(1,n.color+'00');
+    ctx.globalAlpha=n.alpha*(0.8+Math.sin(t*0.005+n.angle)*0.2);
+    ctx.scale(n.rx/Math.max(n.rx,n.ry),n.ry/Math.max(n.rx,n.ry));
+    ctx.beginPath(); ctx.arc(0,0,Math.max(n.rx,n.ry),0,Math.PI*2);
+    ctx.fillStyle=g; ctx.fill(); ctx.restore();
+  });
+  const coreSize=12+Math.sin(t*0.04)*4;
+  const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,coreSize*6);
+  const cc=colorSets[mode][0];
+  cg.addColorStop(0,'#ffffff'); cg.addColorStop(0.15,cc+'ff'); cg.addColorStop(0.5,cc+'40'); cg.addColorStop(1,cc+'00');
+  ctx.save(); ctx.globalAlpha=0.7; ctx.fillStyle=cg; ctx.beginPath(); ctx.arc(cx,cy,coreSize*6,0,Math.PI*2); ctx.fill(); ctx.restore();
+
+  stars.forEach(s => {
+    let sx, sy;
+    if (s.ring>=0) {
+      s.angle+=s.ringSpeed*sf; s.selfAngle+=s.selfSpin*sf;
+      const wobbleR=s.radius+Math.sin(t*s.wobble*sf+s.wobblePhase)*s.radius*0.06;
+      let ox=Math.cos(s.angle)*wobbleR, oy=Math.sin(s.angle)*wobbleR;
+      if(mode===1){const lR=wobbleR*(1+0.3*Math.cos(s.angle*2));ox=Math.cos(s.angle)*lR;oy=Math.sin(s.angle)*lR*0.6;}
+      else if(mode===2){const pulse=wobbleR*(1+0.25*Math.sin(t*0.05*sf+s.ring*0.4));ox=Math.cos(s.angle)*pulse;oy=Math.sin(s.angle)*pulse*(0.7+0.3*Math.cos(t*0.02));}
+      else if(mode===3){ox=Math.cos(s.angle*1.0)*wobbleR;oy=Math.sin(s.angle*1.3+s.ring*0.2)*wobbleR*0.8;}
+      const tiltedY=oy*Math.cos(s.ringTilt)-ox*0.05*Math.sin(s.ringTilt);
+      sx=cx+ox; sy=cy+tiltedY;
+    } else if(s.ring===-1){
+      s.x+=s.vx; s.y+=s.vy;
+      if(s.x<0)s.x=W;if(s.x>W)s.x=0;if(s.y<0)s.y=H;if(s.y>H)s.y=0;
+      sx=s.x; sy=s.y;
+    } else {
+      s.x+=s.vx; s.y+=s.vy;
+      const dx=s.x-cx,dy=s.y-cy,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist>20){s.vx=-dx/dist*0.08;s.vy=-dy/dist*0.08;}
+      sx=s.x; sy=s.y;
+    }
+    const twinkle=0.5+Math.sin(t*s.twinkleSpeed+s.twinklePhase)*0.5;
+    const fa=s.brightness*twinkle, fs=s.size*(0.7+twinkle*0.5);
+    ctx.save(); ctx.globalAlpha=fa;
+    if(s.hasGlow&&fs>1){const glowR=fs*3.5;const gg=ctx.createRadialGradient(sx,sy,0,sx,sy,glowR);gg.addColorStop(0,s.color+'cc');gg.addColorStop(0.4,s.color+'40');gg.addColorStop(1,s.color+'00');ctx.globalAlpha=fa*0.5;ctx.fillStyle=gg;ctx.beginPath();ctx.arc(sx,sy,glowR,0,Math.PI*2);ctx.fill();}
+    ctx.globalAlpha=fa; ctx.fillStyle=s.color; ctx.beginPath(); ctx.arc(sx,sy,fs,0,Math.PI*2); ctx.fill();
+    if(fs>1.5){ctx.globalAlpha=fa*0.9;ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(sx,sy,fs*0.35,0,Math.PI*2);ctx.fill();}
+    if(fs>2.2&&twinkle>0.7){ctx.globalAlpha=fa*0.4;ctx.strokeStyle=s.color;ctx.lineWidth=0.5;const sp=fs*3;ctx.beginPath();ctx.moveTo(sx-sp,sy);ctx.lineTo(sx+sp,sy);ctx.stroke();ctx.beginPath();ctx.moveTo(sx,sy-sp);ctx.lineTo(sx,sy+sp);ctx.stroke();}
+    ctx.restore();
+  });
+  tick++; requestAnimationFrame(drawFrame);
+}
+
+function setMode(idx) {
+  mode=idx;
+  const cols=colorSets[idx], accent=cols[0];
+  [0,1,2,3,4].forEach(i=>{const b=document.getElementById('btn'+i);if(b){b.style.background='';b.style.color='#5050a0';b.style.borderColor='#10083a';}});
+  const ab=document.getElementById('btn'+idx);
+  if(ab){ab.style.background=accent;ab.style.color='#000008';ab.style.borderColor=accent;}
+  document.querySelector('.export-btn').style.background=accent;
+  ctx.fillStyle='#000008'; ctx.fillRect(0,0,W,H);
+  initStars(); initNebulaClouds();
+}
+
+function toggleSpeed() {
+  speedMult=speedMult===1?2.5:speedMult===2.5?0.4:1;
+  const labels={1:'Velocidad',2.5:'⚡ Rápido',0.4:'🌙 Lento'};
+  document.getElementById('btn4').textContent=labels[speedMult]||'Velocidad';
+}
+
+function exportCanvas(){
+  const exp=document.createElement('canvas'); exp.width=W; exp.height=H;
+  const ec=exp.getContext('2d'); ec.drawImage(bgCanvas,0,0); ec.drawImage(stCanvas,0,0);
+  const a=document.createElement('a'); a.href=exp.toDataURL('image/png'); a.download='universo-danza.png'; a.click();
+  const t=document.getElementById('toast'); t.textContent='Imagen exportada ✓'; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+window.addEventListener('resize',()=>{resize();initStars();initNebulaClouds();});
+resize(); initStars(); initNebulaClouds();
+ctx.fillStyle='#000008'; ctx.fillRect(0,0,W,H);
+setMode(0); drawFrame();
+</script>
+</body>
+</html>
