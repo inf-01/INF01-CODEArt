@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Engine — ARTE CODE</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: #0a0a0a; overflow: hidden; }
+#app { width: 100%; height: 100%; display: flex; flex-direction: column; }
+.canvas-area { position: relative; flex: 1; overflow: hidden; }
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.controls { background: #111; border-top: 1px solid #1e1e1e; padding: 10px 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+.ctrl-label { font-family: monospace; font-size: 10px; letter-spacing: 2px; color: #555; text-transform: uppercase; margin-right: 4px; }
+.ctrl-btn { background: #1a1a1a; color: #aaa; border: 1px solid #2a2a2a; padding: 6px 12px; font-family: monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; transition: all 0.18s; text-transform: uppercase; }
+.ctrl-btn:hover { background: #ff6b35; color: #0a0a0a; border-color: #ff6b35; }
+.export-btn { margin-left: auto; background: #f5f0e8; color: #0a0a0a; border: none; padding: 7px 16px; font-family: monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; font-weight: 700; text-transform: uppercase; }
+.export-btn:hover { background: #ff6b35; }
+.toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(20px); background: #ff6b35; color: #0a0a0a; font-family: monospace; font-size: 11px; padding: 10px 20px; border-radius: 2px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 99; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="canvas-area" id="canvasArea">
+    <canvas id="bg"></canvas>
+    <div class="toast" id="toast"></div>
+  </div>
+  <div class="controls">
+    <span class="ctrl-label">Estilo:</span>
+    <button class="ctrl-btn" id="btn0" onclick="setStyle(0)">Oscuro</button>
+    <button class="ctrl-btn" id="btn1" onclick="setStyle(1)">Neón</button>
+    <button class="ctrl-btn" id="btn2" onclick="setStyle(2)">Minimal</button>
+    <button class="ctrl-btn" id="btn3" onclick="setStyle(3)">Editorial</button>
+    <button class="export-btn" onclick="exportCanvas()">Exportar PNG ↓</button>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('bg'),ctx=canvas.getContext('2d');
+let W,H,particles=[],mode=0,tick=0;
+const styles=[
+  {bg:'#0a0a0a',accent:'#ff6b35',accent2:'#cc3300',muted:'#888'},
+  {bg:'#050510',accent:'#00ffcc',accent2:'#ff00aa',muted:'#7070aa'},
+  {bg:'#f5f0e8',accent:'#1a1a1a',accent2:'#444',muted:'#bbb'},
+  {bg:'#1a0a2e',accent:'#e8c547',accent2:'#c4823d',muted:'#998877'},
+];
+
+function resize(){const area=document.getElementById('canvasArea');W=area.offsetWidth;H=area.offsetHeight;canvas.width=W;canvas.height=H;}
+
+function initParticles(){particles=[];const count=mode===2?25:70;for(let i=0;i<count;i++)particles.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,r:Math.random()*2.5+0.5,a:Math.random(),phase:Math.random()*Math.PI*2,type:Math.floor(Math.random()*3)});}
+
+function drawGrid(s){
+  if(mode===2){ctx.strokeStyle='#bbb';ctx.lineWidth=0.4;for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}return;}
+  if(mode===3){ctx.strokeStyle=s.accent+'28';ctx.lineWidth=0.5;for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}return;}
+  ctx.strokeStyle=s.accent+'18';ctx.lineWidth=0.5;for(let x=0;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}for(let y=0;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+}
+
+function drawGeometry(s){
+  const t=tick*0.008;
+  if(mode===0){ctx.save();ctx.strokeStyle=s.accent+'35';ctx.lineWidth=1;const cx=W*0.78,cy=H*0.5;for(let i=0;i<6;i++){const r=35+i*40+Math.sin(t+i)*8;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();}ctx.restore();ctx.save();ctx.strokeStyle=s.accent2+'20';ctx.lineWidth=0.5;const cx2=W*0.18,cy2=H*0.3;for(let i=0;i<4;i++){const r=20+i*28+Math.sin(t*0.7+i)*5;ctx.beginPath();ctx.arc(cx2,cy2,r,0,Math.PI*2);ctx.stroke();}ctx.restore();}
+  if(mode===1){ctx.save();const cx=W*0.8,cy=H*0.5;for(let i=0;i<7;i++){const r=25+i*32+Math.sin(t*1.2+i*0.5)*10;ctx.strokeStyle=(i%2===0?s.accent:s.accent2)+'55';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();}ctx.restore();}
+  if(mode===2){ctx.save();ctx.strokeStyle=s.accent+'25';ctx.lineWidth=1;const cx=W*0.75,cy=H*0.5;for(let i=0;i<5;i++){const r=30+i*35+Math.sin(t*0.6+i)*7;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();}ctx.restore();}
+  if(mode===3){ctx.save();ctx.strokeStyle=s.accent+'65';ctx.lineWidth=2;const bx=W*0.75,by=H*0.5;for(let i=0;i<4;i++){const size=60+i*40+Math.sin(t*0.7+i)*10,a=t*0.4+i*Math.PI/4;ctx.save();ctx.translate(bx,by);ctx.rotate(a);ctx.strokeRect(-size/2,-size/2,size,size);ctx.restore();}ctx.restore();}
+}
+
+function drawParticles(s){particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;const alpha=0.3+Math.sin(tick*0.02+p.phase)*0.2;ctx.save();ctx.globalAlpha=alpha;if(p.type===0){ctx.fillStyle=p.a>0.5?s.accent:s.accent2;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}else if(p.type===1){ctx.strokeStyle=s.accent+'80';ctx.lineWidth=0.5;const sz=p.r*4;ctx.strokeRect(p.x-sz/2,p.y-sz/2,sz,sz);}else{ctx.fillStyle=s.muted+'50';ctx.fillRect(p.x,p.y,p.r*1.5,p.r*1.5);}ctx.restore();});}
+
+function connectParticles(s){if(mode===2)return;for(let i=0;i<particles.length;i++){for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<100){ctx.save();ctx.globalAlpha=(1-d/100)*0.15;ctx.strokeStyle=s.accent;ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();ctx.restore();}}}}
+
+function loop(){const s=styles[mode];ctx.fillStyle=s.bg;ctx.fillRect(0,0,W,H);drawGrid(s);connectParticles(s);drawParticles(s);drawGeometry(s);tick++;requestAnimationFrame(loop);}
+
+function setStyle(idx){
+  mode=idx;const s=styles[idx];
+  document.getElementById('app').style.background=s.bg;
+  document.querySelector('.controls').style.background=idx===2?'#f0ebe0':'#111';
+  document.querySelector('.controls').style.borderTopColor=idx===2?'#ddd':'#1e1e1e';
+  [0,1,2,3].forEach(i=>{const b=document.getElementById('btn'+i);b.style.background='';b.style.color=idx===2?'#888':'#aaa';b.style.borderColor=idx===2?'#ccc':'#2a2a2a';});
+  const ab=document.getElementById('btn'+idx);ab.style.background=s.accent;ab.style.color=idx===2?'#f5f0e8':'#0a0a0a';ab.style.borderColor=s.accent;
+  document.querySelector('.export-btn').style.background=idx===2?s.accent:'#f5f0e8';
+  initParticles();
+}
+
+function exportCanvas(){const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='fondo-animado.png';a.click();const t=document.getElementById('toast');t.textContent='Imagen exportada ✓';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+window.addEventListener('resize',()=>{resize();initParticles();});
+resize();initParticles();loop();setStyle(0);
+</script>
+</body>
+</html>
